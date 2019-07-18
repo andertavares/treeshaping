@@ -9,6 +9,9 @@ import ai.core.AI;
 import ai.core.ParameterSpecification;
 import features.FeatureExtractor;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -414,6 +417,20 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     public List<ParameterSpecification> getParameters() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    /**
+	 * Saves weights to a binary file
+	 * 
+	 * @param path
+	 * @throws IOException
+	 */
+	public void saveWeights(String path) throws IOException {
+		FileOutputStream fos = new FileOutputStream(path);
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(weights);
+		oos.close();
+		fos.close();
+	}
 
    
    
