@@ -8,8 +8,6 @@ import ai.abstraction.LightRush;
 import ai.abstraction.RangedRush;
 import ai.competition.capivara.CmabAssymetricMCTS;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
-import rts.GameState;
-import rts.PlayerAction;
 import rts.units.UnitTypeTable;
 
 /**
