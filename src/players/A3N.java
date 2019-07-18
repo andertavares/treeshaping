@@ -8,6 +8,8 @@ import ai.abstraction.LightRush;
 import ai.abstraction.RangedRush;
 import ai.competition.capivara.CmabAssymetricMCTS;
 import ai.evaluation.SimpleSqrtEvaluationFunction3;
+import rts.GameState;
+import rts.PlayerAction;
 import rts.units.UnitTypeTable;
 
 /**
@@ -16,13 +18,35 @@ import rts.units.UnitTypeTable;
  *
  */
 public class A3N extends CmabAssymetricMCTS {
-
+	
+	
+	/**
+	 * Instantiates A3N by calling the superclass constructor
+	 * with appropriate parameters
+	 * @param types
+	 */
 	public A3N (UnitTypeTable types) {
 		super(
-                    100, -1, 100, 8, 0.3f, 0.0f, 0.4f, 0, new RandomBiasedAI(types),
-                    new SimpleSqrtEvaluationFunction3(), true, types, "ManagerClosestEnemy", 1, 
-                    Arrays.asList(new LightRush(types), new RangedRush(types), new HeavyRush(types)),
-                    "A3N"
-                );
+            100, -1, 100, 8, 0.3f, 0.0f, 0.4f, 0, new RandomBiasedAI(types),
+            new SimpleSqrtEvaluationFunction3(), true, types, "ManagerClosestEnemy", 1, 
+            Arrays.asList(new LightRush(types), new RangedRush(types), new HeavyRush(types)),
+            "A3N"
+        );
 	}
+	
+	
+	/**
+	 * Sets a new policy to select the unterstricted units. 
+	 * The policy consists on the strategy to select the unrestricted units
+	 * and the number of unrestricted units to select.
+	 * @param strategyName must be one of ManagerClosest, ManagerClosestEnemy, 
+	 * ManagerFartherEnemy, ManagerFather, ManagerLessDPS, ManagerLessLife, ManagerMoreDPS, 
+	 * ManagerMorelife, ManagerRandom, ManagerUnitsMelee
+	 * @param numUnits
+	 */
+	public void setUnrestrictedSelectionPolicy(String strategyName, int numUnits) {
+		this.behavior = strategyName;
+		this.qtdUnits = numUnits;
+	}
+	
 }
