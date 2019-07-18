@@ -96,7 +96,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
      * Each AI filters out the possible actions to consider at each state.
      * Thus they're called the action abstractions.
      */
-    protected Map<String,AI> abstractions;
+    protected Map<String,AI> policies;
     
     /**
      * The reward model used by the agent
@@ -139,18 +139,21 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         weights = new HashMap<>();
         eligibility = new HashMap<>();
 
-        for (String aiName : abstractions.keySet()) {
+        for (String strategy : unrestrictedSelectionStrategies) {
 
-            eligibility.put(aiName, new double[featureExtractor.getNumFeatures()]);
+            eligibility.put(strategy, new double[featureExtractor.getNumFeatures()]);
 
             // initializes weights randomly within [-1, 1]
-            double[] abstractionWeights = new double[featureExtractor.getNumFeatures()];
-            for (int i = 0; i < abstractionWeights.length; i++) {
-                    abstractionWeights[i] = (random.nextDouble() * 2) - 1; // randomly initialized in [-1,1]
+            double[] strategyWeights = new double[featureExtractor.getNumFeatures()];
+            for (int i = 0; i < strategyWeights.length; i++) {
+                    strategyWeights[i] = (random.nextDouble() * 2) - 1; // randomly initialized in [-1,1]
             }
-            weights.put(aiName, abstractionWeights);
+            weights.put(strategy, strategyWeights);
 
         }
+        
+        //instantiates the A3N planner
+        planner = new A3N(types);
     }
 
     @Override
