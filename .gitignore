@@ -1,9 +1,11 @@
 /bin/
+/lib/CopyLibs
+/lib/nblibraries.properties
 /results/
 /.classpath
 /.project
 /ddresults/
-/nbproject/private/
+/nbproject/
 /build/
 /dist/
 /manifest.mf
