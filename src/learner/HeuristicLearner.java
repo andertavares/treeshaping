@@ -8,6 +8,8 @@ package learner;
 import ai.core.AI;
 import ai.core.ParameterSpecification;
 import features.FeatureExtractor;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,17 +157,255 @@ public class HeuristicLearner extends AI{
 
     @Override
     public PlayerAction getAction(int player, GameState gs) throws Exception {
-    	// determines the unrestricted selection policy
+    	//sanity check for player ID:
+		if(gs.getTime() == 0) {
+			playerID = player; //assigns the ID on the initial state
+			
+		} else if (player != playerID) { // consistency check for other states
+			logger.error("Called to play with different ID! (mine={}, given={}", playerID, player);
+			logger.error("Will proceed, but behavior might be unpredictable");
+		}
     	
-    	
-    	
-    	planner.setUnrestrictedSelectionPolicy("ManagerClosestEnemy", 1);
+		// determines the unrestricted selection policy
+		String currentChoiceName = epsilonGreedy(gs, player, weights, epsilon);
+		
+		if(previousState != null && previousChoiceName != null) {
+			// learns from actual experience
+			sarsaUpdate(previousState, player, previousChoiceName, gs, currentChoiceName, weights, eligibility);
+		}
+		
+		// updates previous choices for the next sarsa learning update
+		previousChoiceName = currentChoiceName;
+		previousState = gs.clone(); //cloning fixes a subtle error where gs changes in the game engine and becomes the next state, which is undesired 
+		
+		//Date end = new Date(System.currentTimeMillis());
+		logger.debug("Player {} selected {}.",
+			player, currentChoiceName
+		);
+		
+
+		// sets the unrestricted unit selection policy
+    	planner.setUnrestrictedSelectionPolicy(currentChoiceName, 1);
     	
     	// gets the action returned by the planner according to the unrestricted selection policy
         return planner.getAction(player, gs);
     }
 
-    @Override
+    /**
+	 * Performs a Sarsa update on the given weights using the given eligibility traces.
+	 * For an experience tuple <s, a, r, s', a'>, where s is the state, a is the actionName, 
+	 * r is the reward (calculated internally),
+	 * s' is the next state, a' is the nextActionName
+	 * 
+	 * 1) Calculates the TD error: delta = r + gammna * Q(s',a') - Q(s,a) 
+	 * 2) Updates the weight vector: w = w + alpha * delta * e (e is the eligibility vector) 
+	 * 3) Updates the eligibility vector: e = lambda * gamma * e + features
+	 * @param state
+	 * @param player
+	 * @param actionName
+	 * @param nextState
+	 * @param nextActionName
+	 * @param weights
+	 * @param eligibility
+	 */
+	private void sarsaUpdate(GameState state, int player, String actionName, GameState nextState, String nextActionName, 
+			Map<String, double[]> weights, Map<String, double[]> eligibility) {
+		
+		logger.debug(
+			"<s,a,r,s'(gameover?),a',q(s',a')> = <{}, {}, {}, {}({}), {}, {}>",
+			state.getTime(), actionName, 
+			rewards.reward(nextState, player), 
+			nextState.getTime(), nextState.gameover(), nextActionName,
+			qValue(nextState, player, nextActionName)
+		);
+		
+		//delta = r + gammna * Q(s',a') - Q(s,a)
+		double tdError = tdTarget(nextState, player, nextActionName) - qValue(state, player, actionName);
+
+		tdLambdaUpdateRule(state, player, actionName, tdError, weights, eligibility);
+		
+		/*
+		 * Remark: in Silver et al (2013) TD search, the eligibility vector update is done as 
+		 * e = e * lambda + f(s,a), where f(s,a) are the features for state s and action a.
+		 * This is so because features are per state and action. 
+		 * Moreover, they use gamma=1 always so that it does not appear in the equation.
+		 * That is, the general form of the equation should be e = e * gamma * lambda + f(s,a)
+		 *  
+		 * Here, gamma can have different values and we can interpret that f(s,a) = zeros 
+		 * for the non-selected action.
+		 * Thus, we decay the eligibility vectors of all actions and then 
+		 * increase the eligibility vector of the selected action by adding the current state features.
+		 * In other words, we  implement equation e = e * gamma * lambda + f(s,a) in two steps.
+		 */
+	}
+
+	private void tdLambdaUpdateRule(GameState state, int player, String actionName, double tdError, Map<String, double[]> weights,
+			Map<String, double[]> eligibility) {
+		
+		double[] f = featureExtractor.extractFeatures(state, player); // feature vector for the state
+		
+		for (String abstractionName : weights.keySet()) {
+			double[] w = weights.get(abstractionName); // weight vector
+			double[] e = eligibility.get(abstractionName); // eligibility vector 
+			
+			// certifies that things are ok
+			assert w.length == e.length;
+			assert e.length == f.length;
+			
+			// vector updates
+			for (int i = 0; i < w.length; i++) {
+				w[i] = w[i] + alpha * tdError * e[i]; // weight vector update
+				e[i] = e[i] * gamma * lambda; //the eligibility of all actions decays by gamma * lambda
+			}
+		}
+		
+		// incrementes the eligibility of the selected action by adding the feature vector
+		double[] eSelected = eligibility.get(actionName);
+		for (int i = 0; i < eSelected.length; i++) {
+			eSelected[i] += f[i];
+		}
+	}
+
+	/**
+	 * The temporal-difference target is, by definition, r + gamma * q(s', a'),
+	 * where s' is the reached state and a' is the action to be performed there.
+	 * 
+	 * Here, we adopt no intermediate rewards. If the game is over and the player
+	 * won, r is 1 and q(s', a') is 0. If the game is over and the player lost or
+	 * draw, r is 0 and q(s', a') is 0. If the game is not over, r is 0 and q(s',
+	 * a') is the predicted value given by the function approximator.
+	 * 
+	 * TODO at gameover, it might be interesting to break ties with in-game score
+	 * rather than give zero reward
+	 * 
+	 * @param nextState
+	 * @param player
+	 * @param nextActionName
+	 * @return
+	 */
+	private double tdTarget(GameState nextState, int player, String nextActionName) {
+		double reward, nextQ;
+		reward = rewards.reward(nextState, player);
+		
+		// terminal states have value of zero
+		if (nextState.gameover() || nextState.getTime() >= matchDuration) {
+			nextQ = 0;
+		} else {
+			nextQ = qValue(nextState, player, nextActionName);
+		}
+		logger.trace("Reward for time {} for player {}: {}. q(s',a')={}. GameOver? {}", nextState.getTime(), player, reward, nextQ, nextState.gameover());
+		return reward + this.gamma * nextQ;
+	}
+
+	/**
+	 * Returns the name of the unrestricted unit selection policy that would be 
+	 * active in this state using epsilon greedy
+	 * (a random strategy name with probability epsilon, and the greedy w.r.t the Q-value
+	 * with probability (1-epsilon)
+	 * 
+	 * @param state
+	 * @param player
+	 * @param weights
+	 * @param epsilon 
+	 * @return
+	 */
+    private String epsilonGreedy(GameState state, int player, Map<String, double[]> weights, double epsilon) {
+    	// the name of the AI that will choose the action for this state
+		String chosenName = null;
+
+		// epsilon-greedy:
+		if (random.nextDouble() < epsilon) { // random choice
+			// trick to randomly select from HashMap adapted from:
+			// https://stackoverflow.com/a/9919827/1251716
+			List<String> keys = new ArrayList<String>(weights.keySet());
+			chosenName = keys.get(random.nextInt(keys.size()));
+			if (chosenName == null) {
+				logger.error("Unable to select a random strategy!");
+			}
+		} else { // greedy choice
+			chosenName = greedyChoice(state, player, weights);
+		}
+
+		return chosenName;
+	}
+
+    /**
+	 * Returns the name of the unrestricted unit selection policy with the highest Q-value for
+	 * the given state
+	 * 
+	 * @param state
+	 * @param player
+	 * @return
+	 */
+	private String greedyChoice(GameState state, int player, Map<String, double[]> weights) {
+
+		// the name of the strategy that be active for this state
+		String chosenName = null;
+
+		// feature vector
+		double[] features = featureExtractor.extractFeatures(state, player);
+
+		// argmax Q:
+		double maxQ = Double.NEGATIVE_INFINITY; // because MIN_VALUE is positive =/
+		for (String candidateName : weights.keySet()) {
+			double q = qValue(features, candidateName);
+			if(Double.isInfinite(q) || Double.isNaN(q)) {
+				logger.warn("(+ or -) infinite qValue for action {} in state {}", candidateName, features); 
+			}
+			if (q > maxQ) {
+				maxQ = q;
+				chosenName = candidateName;
+			}
+		}
+		if (chosenName == null) {
+			logger.error("Unable to select an action abstraction for the greedy action in state {}! Selecting WorkerRush to avoid a crash.", state.getTime());
+			chosenName = "WorkerRush";
+		}
+
+		return chosenName;
+	}
+
+	/**
+	 * Returns the Q-value of the unrestricted unit selection policy for the state described by the
+	 * given feature vector
+	 * 
+	 * @param features
+	 * @param policyName
+	 * @return
+	 */
+	private double qValue(double[] features, String policyName) {
+		return dotProduct(features, weights.get(policyName));
+	}
+	
+	/**
+	 * Returns the Q-value for the given state-action pair
+	 * 
+	 * @param state
+	 * @param player
+	 * @param actionName the unrestricted unit selection policy
+	 * @return
+	 */
+	private double qValue(GameState state, int player, String actionName) {
+		return qValue(featureExtractor.extractFeatures(state, player), actionName);
+	}
+
+	/**
+	 * Dot product between two vectors (i.e. sum(f[i] * w[i]) for i = 0, ..., length of the vectors
+	 * @param features
+	 * @param weights
+	 * @return
+	 */
+	protected double dotProduct(double[] features, double[] weights) {
+		assert features.length == weights.length;
+		
+		double value = 0;
+		for(int i = 0; i < features.length; i++) {
+			value += features[i] * weights[i];
+		}
+		return value;
+	}
+
+	@Override
     public AI clone() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
