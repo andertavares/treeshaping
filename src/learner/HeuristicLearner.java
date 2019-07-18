@@ -97,6 +97,12 @@ public class HeuristicLearner extends AI{
      * The reward model used by the agent
      */
     protected RewardModel rewards;
+    
+    protected final String[] unrestrictedSelectionStrategies = {
+		"ManagerClosest", "ManagerClosestEnemy", "ManagerFartherEnemy", 
+		"ManagerFather", "ManagerLessDPS", "ManagerLessLife", 
+		"ManagerMoreDPS", "ManagerMorelife", "ManagerRandom", "ManagerUnitsMelee"
+	};
 	
     protected Logger logger;
    
@@ -149,6 +155,13 @@ public class HeuristicLearner extends AI{
 
     @Override
     public PlayerAction getAction(int player, GameState gs) throws Exception {
+    	// determines the unrestricted selection policy
+    	
+    	
+    	
+    	planner.setUnrestrictedSelectionPolicy("ManagerClosestEnemy", 1);
+    	
+    	// gets the action returned by the planner according to the unrestricted selection policy
         return planner.getAction(player, gs);
     }
 
