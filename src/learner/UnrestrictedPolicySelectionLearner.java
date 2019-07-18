@@ -26,7 +26,7 @@ import rts.units.UnitTypeTable;
  *
  * @author artavares
  */
-public class HeuristicLearner extends AI{
+public class UnrestrictedPolicySelectionLearner extends AI{
    /**
     * The weights are per heuristic
     */
@@ -108,7 +108,7 @@ public class HeuristicLearner extends AI{
 	
     protected Logger logger;
    
-   public HeuristicLearner(UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, FeatureExtractor featureExtractor, int matchDuration, int timeBudget, double alpha, 
+   public UnrestrictedPolicySelectionLearner(UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, FeatureExtractor featureExtractor, int matchDuration, int timeBudget, double alpha, 
 			double epsilon, double gamma, double lambda, int randomSeed) 
     {
         this.timeBudget = timeBudget;
