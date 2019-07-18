@@ -106,7 +106,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     protected final String[] unrestrictedSelectionStrategies = {
 		"ManagerClosest", "ManagerClosestEnemy", "ManagerFartherEnemy", 
 		"ManagerFather", "ManagerLessDPS", "ManagerLessLife", 
-		"ManagerMoreDPS", "ManagerMorelife", "ManagerRandom", "ManagerUnitsMelee"
+		"ManagerMoreDPS", "ManagerMoreLife", "ManagerRandom", "ManagerUnitsMelee"
 	};
 	
     protected Logger logger;
