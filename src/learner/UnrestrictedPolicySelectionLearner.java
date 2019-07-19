@@ -9,8 +9,10 @@ import ai.core.AI;
 import ai.core.ParameterSpecification;
 import features.FeatureExtractor;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -433,6 +435,26 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		oos.writeObject(weights);
 		oos.close();
 		fos.close();
+	}
+
+	/**
+	 * Load weights from a binary file
+	 * 
+	 * @param path
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	public void loadWeights(String path) throws IOException {
+		FileInputStream fis = new FileInputStream(path);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		try {
+			weights = (Map<String, double[]>) ois.readObject();
+		} catch (ClassNotFoundException e) {
+			System.err.println("Error while attempting to load weights.");
+			e.printStackTrace();
+		}
+		ois.close();
+		fis.close();
 	}
 
    
