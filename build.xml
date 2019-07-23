@@ -5,25 +5,55 @@
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. --><project basedir="." default="build" name="treeshaping">
     <property environment="env"/>
+    <property name="junit.output.dir" value="junit"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="11"/>
     <property name="source" value="11"/>
+    <path id="JUnit 5.libraryclasspath">
+        <pathelement location="../../.p2/pool/plugins/org.junit.jupiter.api_5.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.jupiter.engine_5.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.jupiter.migrationsupport_5.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.jupiter.params_5.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.platform.commons_1.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.platform.engine_1.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.platform.launcher_1.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.platform.runner_1.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.platform.suite.api_1.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit.vintage.engine_5.4.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.opentest4j_1.1.1.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.apiguardian_1.0.0.v20190212-2109.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar"/>
+        <pathelement location="../../.p2/pool/plugins/org.hamcrest.core_1.3.0.v20180420-1519.jar"/>
+    </path>
     <path id="treeshaping.classpath">
         <pathelement location="bin"/>
         <pathelement location="lib/commons-cli-1.4-javadoc.jar"/>
         <pathelement location="lib/commons-cli-1.4.jar"/>
-        <pathelement location="lib/CopyLibs/org-netbeans-modules-java-j2seproject-copylibstask.jar"/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j-api-2.11.2-javadoc.jar"/>
         <pathelement location="lib/log4j-api-2.11.2.jar"/>
         <pathelement location="lib/log4j-core-2.11.2.jar"/>
         <pathelement location="lib/microrts.jar"/>
         <pathelement location="lib/ufv.jar"/>
+        <path refid="JUnit 5.libraryclasspath"/>
+    </path>
+    <path id="run.TestMaterialDistanceHPFeatureExtractor.classpath">
+        <path refid="treeshaping.classpath"/>
+        <pathelement location="lib/commons-cli-1.4-javadoc.jar"/>
+        <pathelement location="lib/commons-cli-1.4.jar"/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j-api-2.11.2-javadoc.jar"/>
+        <pathelement location="lib/log4j-api-2.11.2.jar"/>
+        <pathelement location="lib/log4j-core-2.11.2.jar"/>
+        <pathelement location="lib/microrts.jar"/>
+        <pathelement location="lib/ufv.jar"/>
+        <path refid="JUnit 5.libraryclasspath"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
@@ -54,5 +84,22 @@
     <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
+    </target>
+    <target name="TestMaterialDistanceHPFeatureExtractor">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="test.TestMaterialDistanceHPFeatureExtractor" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="run.TestMaterialDistanceHPFeatureExtractor.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
     </target>
 </project>
