@@ -126,18 +126,26 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     	put("HP+", "ManagerMoreLife");
     	put("R", "ManagerRandom");
     	put("M", "ManagerUnitsMelee");
-    	
     }};
     
-    // in the notation of the AIIDE'18 paper (Moraes et al): CE, FE, HP-, HP+, AV+
-    /*protected final String[] selectionStrategyNames = {
-		"ManagerClosestEnemy", "ManagerFartherEnemy",
-		"ManagerLessLife", "ManagerMoreLife", 
-		"ManagerMoreDPS",
-	};
-	*/
-    protected Logger logger;
+   protected Logger logger;
    
+   /**
+    * Creates an agent that attemps to learn the unrestricted unit selection policy
+    * TODO get rid of portfolio?
+    * @param types
+    * @param portfolio
+    * @param rewards
+    * @param featureExtractor
+    * @param selectionStrategyAcronyms
+    * @param matchDuration
+    * @param timeBudget
+    * @param alpha
+    * @param epsilon
+    * @param gamma
+    * @param lambda
+    * @param randomSeed
+    */
    public UnrestrictedPolicySelectionLearner(
 		   UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, 
 		   FeatureExtractor featureExtractor, List<String> selectionStrategyAcronyms, 
@@ -355,14 +363,6 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	/**
 	 * The temporal-difference target is, by definition, r + gamma * q(s', a'),
 	 * where s' is the reached state and a' is the action to be performed there.
-	 * 
-	 * Here, we adopt no intermediate rewards. If the game is over and the player
-	 * won, r is 1 and q(s', a') is 0. If the game is over and the player lost or
-	 * draw, r is 0 and q(s', a') is 0. If the game is not over, r is 0 and q(s',
-	 * a') is the predicted value given by the function approximator.
-	 * 
-	 * TODO at gameover, it might be interesting to break ties with in-game score
-	 * rather than give zero reward
 	 * 
 	 * @param nextState
 	 * @param player
