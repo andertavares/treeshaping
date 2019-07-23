@@ -29,7 +29,7 @@ public class Parameters {
         options.addOption(new Option("o", "test_opponent", true, "Full name of the AI to test against (overrides the one specified in file)."));
         options.addOption(new Option("a", "activation", true, "Activation function for the value function approximator (default: identity)"));
         options.addOption(new Option("s", "strategies", true, "Strategies to consider for selecting the unrestricted unit"));
-        options.addOption(new Option("g", "gui", true, "Activate GUI to visualize matches (if omitted, no GUI)."));
+        options.addOption(new Option("g", "gui", false, "Activate GUI to visualize matches (if omitted, no GUI)."));
         options.addOption(new Option(null, "train_matches", true, "Number of training matches."));
         options.addOption(new Option(null, "search_timebudget", true, "Milisseconds of planning time."));
         options.addOption(new Option(null, "td_alpha_initial", true, "Initial learning rate (held constant throughout experiment by now)"));
@@ -46,6 +46,7 @@ public class Parameters {
 		Options options = trainCommandLineOptions();
 		options.addOption(new Option(null, "save_replay", false, "If omitted, does not generate replay (trace) files."));
 		options.addOption(new Option("m", "test_matches", true, "Number of test matches."));
+		options.addOption(new Option(null, "test_position", true, "0 or 1 (the player index of the agent under test)"));
 		
 		return options;
 	}
@@ -62,7 +63,8 @@ public class Parameters {
 		// overrides 'direct' parameters
 		List<String> overrideList = Arrays.asList(
 				"initial_rep", "final_rep", "train_opponent", "test_opponent", 
-				"test_matches", "rewards", "features", "train_matches", "strategies"
+				"test_matches", "rewards", "features", "train_matches", "strategies",
+				"test_position"
 		);
 		
 		for(String paramName : overrideList) {
@@ -70,6 +72,12 @@ public class Parameters {
 				logger.info("Parameter '{}' overridden to '{}'", paramName, cmd.getOptionValue(paramName));
 				prop.setProperty(paramName, cmd.getOptionValue(paramName));
 			}
+		}
+		
+		// overrides GUI parameter
+		if(cmd.hasOption("gui")) {
+			prop.setProperty("visualize_training", "true");
+			prop.setProperty("visualize_test", "true");
 		}
 		
 		//parameters whose _ must be replaced by .
@@ -82,12 +90,6 @@ public class Parameters {
 				logger.info("Parameter '{}' overridden to '{}'", dotParamName, cmd.getOptionValue(paramName));
 				prop.setProperty(dotParamName, cmd.getOptionValue(paramName));
 			}
-		}
-		
-		// the GUI parameter has a special treatment:
-		if(cmd.hasOption("gui")) {
-			prop.setProperty("visualize_training", "true");
-			prop.setProperty("visualize_test", "true");
 		}
 		
 		// the portfolio parameter requires a special treatment:

@@ -125,7 +125,8 @@ public class Test {
  		   config.getProperty("strategies", "CE,FE,HP-,HP+,AV+").split(",")
         );
         
-        // creates the player instance and loads weights
+        // creates the player instance and loads weights according to its position
+        int testPosition = Integer.parseInt(config.getProperty("test_position", "0"));
         UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner(
 			types, 
 			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))),
@@ -135,12 +136,12 @@ public class Test {
 			maxCycles,
 			timeBudget, alpha, epsilon, gamma, lambda, randomSeedP0
 		);
-		player.loadWeights(workingDir + "/weights_0.bin");
+		player.loadWeights(String.format("%s/weights_%d.bin", workingDir, testPosition));
 		
 		// updates the config with the overwritten parameters
 		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
 		config.setProperty("random.seed.p1", Integer.toString(randomSeedP1));
-		config.setProperty("portfolio", portfolioNames);
+		config.setProperty("portfolio", portfolioNames); //TODO isn't this handled in Parameters class?
 		
 		Logger logger = LogManager.getRootLogger();
 		
