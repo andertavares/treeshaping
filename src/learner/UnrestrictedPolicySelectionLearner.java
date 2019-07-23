@@ -237,12 +237,14 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		);
 	   
    }
-
-    /*private static String[] getSelectioStrategies() {
-    	
-    	String[] names = new String 
     
-    }*/
+   /**
+    * Returns the weight vector
+    * @return
+    */
+   public Map<String, double[]> getWeights(){
+	   return weights;
+   }
 
 	@Override
     public void reset() {

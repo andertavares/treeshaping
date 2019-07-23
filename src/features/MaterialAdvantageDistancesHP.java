@@ -1,5 +1,7 @@
 package features;
 
+import java.util.List;
+
 import rts.GameState;
 import rts.units.Unit;
 import rts.units.UnitTypeTable;
@@ -225,5 +227,20 @@ public class MaterialAdvantageDistancesHP extends MaterialAdvantage {
 			}
 		}
 		return lowestHPRatio;
+	}
+	
+	public List<String> featureNames(){
+		List<String> names = super.featureNames();
+		names.add("shortestDistanceMobileUnits");
+		names.add("longestDistanceMobileUnits");
+		names.add("shortestDistanceFromMyUnitToEnemyBase");
+		names.add("shortestDistanceFromEnemyUnitToMyBase");
+		names.add("lowestRemainingHPRatioMy");
+		names.add("lowestRemainingHPRatioEnemy");
+		names.add("highestRemainingHPRatioMy");
+		names.add("highestRemainingHPRatioEnemy");
+
+		return names;
+		
 	}
 }
