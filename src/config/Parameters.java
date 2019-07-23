@@ -53,6 +53,7 @@ public class Parameters {
 	/**
 	 * Merge parameters from command line and properties. 
 	 * Command line parameters override those on properties. 
+	 * TODO make gui override both visualize_train and visualize_test
 	 * @param cmd
 	 * @param prop
 	 */
