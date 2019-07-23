@@ -29,6 +29,7 @@ public class Parameters {
         options.addOption(new Option("o", "test_opponent", true, "Full name of the AI to test against (overrides the one specified in file)."));
         options.addOption(new Option("a", "activation", true, "Activation function for the value function approximator (default: identity)"));
         options.addOption(new Option("s", "strategies", true, "Strategies to consider for selecting the unrestricted unit"));
+        options.addOption(new Option("g", "gui", true, "Activate GUI to visualize matches (if omitted, no GUI)."));
         options.addOption(new Option(null, "train_matches", true, "Number of training matches."));
         options.addOption(new Option(null, "search_timebudget", true, "Milisseconds of planning time."));
         options.addOption(new Option(null, "td_alpha_initial", true, "Initial learning rate (held constant throughout experiment by now)"));

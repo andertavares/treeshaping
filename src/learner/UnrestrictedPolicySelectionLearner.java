@@ -444,8 +444,10 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			}
 		}
 		if (chosenName == null) {
-			logger.error("Unable to select an action abstraction for the greedy action in state {}! Selecting WorkerRush to avoid a crash.", state.getTime());
-			chosenName = "WorkerRush";
+			logger.error("Unable to select a strategy for the greedy action in state {}! Selecting ManagerClosestEnemy to avoid a crash.", state.getTime());
+			logger.error("Dumping state to errorState{}.xml", state.getTime());
+			state.toxml("errorState" + state.getTime() + ".xml");
+			//chosenName = "ManagerClosestEnemy";
 		}
 
 		return chosenName;
