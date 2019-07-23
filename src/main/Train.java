@@ -108,7 +108,6 @@ public class Train {
 		}
 		
 		// updates the config with the overwritten parameters
-		//TODO do the same to rewards, features and selection strategies
 		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
 		config.setProperty("random.seed.p1", Integer.toString(randomSeedP1));
 		

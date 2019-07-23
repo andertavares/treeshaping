@@ -53,7 +53,6 @@ public class Parameters {
 	/**
 	 * Merge parameters from command line and properties. 
 	 * Command line parameters override those on properties. 
-	 * TODO make gui override both visualize_train and visualize_test
 	 * @param cmd
 	 * @param prop
 	 */
@@ -83,6 +82,12 @@ public class Parameters {
 				logger.info("Parameter '{}' overridden to '{}'", dotParamName, cmd.getOptionValue(paramName));
 				prop.setProperty(dotParamName, cmd.getOptionValue(paramName));
 			}
+		}
+		
+		// the GUI parameter has a special treatment:
+		if(cmd.hasOption("gui")) {
+			prop.setProperty("visualize_training", "true");
+			prop.setProperty("visualize_test", "true");
 		}
 		
 		// the portfolio parameter requires a special treatment:
