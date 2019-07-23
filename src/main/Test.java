@@ -161,7 +161,8 @@ public class Test {
 		String tracePrefix = writeReplay ? workingDir + "/test-trace-vs-" + testOpponent.getClass().getSimpleName() : null;
 		
 		Runner.repeatedMatches(
-			types, testMatches, workingDir + "/test-vs-" + testOpponent.getClass().getSimpleName() + ".csv", 
+			types, testMatches, 
+			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition), 
 			player, testOpponent, visualizeTest, settings, tracePrefix
 		);
 		logger.info("Test finished.");
