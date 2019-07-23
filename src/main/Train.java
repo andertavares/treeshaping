@@ -2,7 +2,6 @@ package main;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -17,16 +16,7 @@ import org.apache.logging.log4j.Logger;
 import ai.core.AI;
 import config.ConfigManager;
 import config.Parameters;
-import features.FeatureExtractor;
-import features.MapAware;
-import features.MaterialAdvantage;
-import features.UnitDistance;
 import learner.UnrestrictedPolicySelectionLearner;
-import portfolio.PortfolioManager;
-import reward.RewardModel;
-import reward.VictoryOnly;
-import reward.WinLossDraw;
-import reward.WinLossTiesBroken;
 import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
@@ -97,77 +87,28 @@ public class Train {
 		int trainMatches = Integer.parseInt(config.getProperty("train_matches"));
 		//int testMatches = Integer.parseInt(config.getProperty("test_matches"));
 		
-		int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
-		
-		int timeBudget = Integer.parseInt(config.getProperty("search.timebudget"));
-		
-        double epsilon = Double.parseDouble(config.getProperty("td.epsilon.initial"));
-        //epsilonDecayRate = Double.parseDouble(config.getProperty("td.epsilon.decay", "1.0"));
-        
-        double alpha = Double.parseDouble(config.getProperty("td.alpha.initial"));
-        //alphaDecayRate = Double.parseDouble(config.getProperty("td.alpha.decay", "1.0"));
-        
-        double gamma = Double.parseDouble(config.getProperty("td.gamma"));
-        double lambda = Double.parseDouble(config.getProperty("td.lambda"));
-        
-        String portfolioNames = config.getProperty("portfolio");
-		
         // loads microRTS game settings
      	GameSettings settings = GameSettings.loadFromConfig(config);
      		
         // creates a UnitTypeTable that should be overwritten by the one in config
         UnitTypeTable types = new UnitTypeTable(settings.getUTTVersion(), settings.getConflictPolicy());
         
-        // loads the reward model (default=victory-only)
-        RewardModel rewards = null;
-        if(config.getProperty("rewards", "victory-only").equals("victory-only")) {
-        	rewards = new VictoryOnly();
-        }
-        else if (config.getProperty("rewards", "victory-only").equals("winloss-tiebreak")) {
-        	 rewards = new WinLossTiesBroken(maxCycles);
-        }
-        else if (config.getProperty("rewards", "victory-only").equals("winlossdraw")) {
-        	rewards = new WinLossDraw(maxCycles);
-        }
-        
-        FeatureExtractor featureExtractor = null;
-        if(config.getProperty("features", "mapaware").equals("mapaware")) {
-        	featureExtractor = new MapAware(types, maxCycles);
-        }
-        else if (config.getProperty("features", "mapaware").equals("material")) {
-        	 featureExtractor = new MaterialAdvantage(types, maxCycles);
-        }
-        else if (config.getProperty("features", "mapaware").equals("distance")) {
-        	featureExtractor = new UnitDistance(types, maxCycles);
-        }
-        
         // creates the player instance
-		UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner(
-			types, 
-			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))), 
-			rewards,
-			featureExtractor,
-			maxCycles,
-			timeBudget, alpha, epsilon, gamma, lambda, randomSeedP0
+		UnrestrictedPolicySelectionLearner player = UnrestrictedPolicySelectionLearner.fromConfig(
+			types, randomSeedP0, config
 		);
 		
 		// creates the training opponent
 		AI trainingOpponent = null;
 		if("selfplay".equals(config.getProperty("train_opponent"))) {
-			trainingOpponent = new UnrestrictedPolicySelectionLearner(
-				types,
-				PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))),
-				rewards,
-				featureExtractor,
-				Integer.parseInt(config.getProperty("max_cycles")),
-				timeBudget, alpha, epsilon, gamma, lambda, randomSeedP1
-			);
+			trainingOpponent = UnrestrictedPolicySelectionLearner.fromConfig(types, randomSeedP1, config);
 		}
 		else {
 			trainingOpponent = AILoader.loadAI(config.getProperty("train_opponent"), types);
 		}
 		
 		// updates the config with the overwritten parameters
+		//TODO do the same to rewards, features and selection strategies
 		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
 		config.setProperty("random.seed.p1", Integer.toString(randomSeedP1));
 		

@@ -24,10 +24,11 @@ public class Parameters {
         options.addOption(new Option("i", "initial_rep", true, "Number of the initial repetition (useful to parallelize executions). Assumes 0 if omitted"));
         options.addOption(new Option("t", "train_opponent", true, "Full name of the AI to train against (overrides the one specified in file)."));
         options.addOption(new Option("p", "portfolio", true, "The type of portfolio to use: basic4 (4 rush), basic6 (rush+support), basic8 (default: 4 rush + 4 defense) or basic10 (rush+defense+support)"));
-        options.addOption(new Option("r", "rewards", true, "The reward model:  winloss-tiebreak, winlossdraw or victory-only (default)"));
-        options.addOption(new Option("l", "features", true, "The feature model:  material, distance or mapaware (default)"));
+        options.addOption(new Option("r", "rewards", true, "The reward model:  winloss-tiebreak, winlossdraw or victory-only"));
+        options.addOption(new Option("e", "features", true, "The feature model:  material, distance, materialdistancehp or mapaware"));
         options.addOption(new Option("o", "test_opponent", true, "Full name of the AI to test against (overrides the one specified in file)."));
         options.addOption(new Option("a", "activation", true, "Activation function for the value function approximator (default: identity)"));
+        options.addOption(new Option("s", "strategies", true, "Strategies to consider for selecting the unrestricted unit"));
         options.addOption(new Option(null, "train_matches", true, "Number of training matches."));
         options.addOption(new Option(null, "search_timebudget", true, "Milisseconds of planning time."));
         options.addOption(new Option(null, "td_alpha_initial", true, "Initial learning rate (held constant throughout experiment by now)"));
@@ -60,7 +61,7 @@ public class Parameters {
 		// overrides 'direct' parameters
 		List<String> overrideList = Arrays.asList(
 				"initial_rep", "final_rep", "train_opponent", "test_opponent", 
-				"test_matches", "rewards", "features", "train_matches"
+				"test_matches", "rewards", "features", "train_matches", "strategies"
 		);
 		
 		for(String paramName : overrideList) {

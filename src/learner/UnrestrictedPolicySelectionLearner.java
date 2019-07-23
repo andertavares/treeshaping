@@ -5,24 +5,30 @@
  */
 package learner;
 
-import ai.core.AI;
-import ai.core.ParameterSpecification;
-import features.FeatureExtractor;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import ai.core.AI;
+import ai.core.ParameterSpecification;
+import features.FeatureExtractor;
+import features.FeatureExtractorFactory;
 import players.A3N;
+import portfolio.PortfolioManager;
 import reward.RewardModel;
+import reward.RewardModelFactory;
 import rts.GameState;
 import rts.PlayerAction;
 import rts.units.UnitTypeTable;
@@ -105,16 +111,38 @@ public class UnrestrictedPolicySelectionLearner extends AI{
      */
     protected RewardModel rewards;
     
-    protected final String[] unrestrictedSelectionStrategies = {
-		"ManagerClosest", "ManagerClosestEnemy", "ManagerFartherEnemy", 
-		"ManagerFather", "ManagerLessDPS", "ManagerLessLife", 
-		"ManagerMoreDPS", "ManagerMoreLife", "ManagerRandom", "ManagerUnitsMelee"
+    /**
+     * A map from acronyms to actual class names inside A3N original project
+     */
+    @SuppressWarnings("serial")
+	protected final static Map<String,String> selectionStrategyNames = new HashMap<>() {{
+    	put("CC", "ManagerClosest");
+    	put("CE", "ManagerClosestEnemy");
+    	put("FC", "ManagerFather");
+    	put("FE", "ManagerFartherEnemy");
+    	put("AV-", "ManagerLessDPS");
+    	put("AV+", "ManagerMoreDPS");
+    	put("HP-", "ManagerLessLife");
+    	put("HP+", "ManagerMoreLife");
+    	put("R", "ManagerRandom");
+    	put("M", "ManagerUnitsMelee");
+    	
+    }};
+    
+    // in the notation of the AIIDE'18 paper (Moraes et al): CE, FE, HP-, HP+, AV+
+    /*protected final String[] selectionStrategyNames = {
+		"ManagerClosestEnemy", "ManagerFartherEnemy",
+		"ManagerLessLife", "ManagerMoreLife", 
+		"ManagerMoreDPS",
 	};
-	
+	*/
     protected Logger logger;
    
-   public UnrestrictedPolicySelectionLearner(UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, FeatureExtractor featureExtractor, int matchDuration, int timeBudget, double alpha, 
-			double epsilon, double gamma, double lambda, int randomSeed) 
+   public UnrestrictedPolicySelectionLearner(
+		   UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, 
+		   FeatureExtractor featureExtractor, List<String> selectionStrategyAcronyms, 
+		   int matchDuration, int timeBudget, double alpha, 
+		   double epsilon, double gamma, double lambda, int randomSeed) 
     {
         this.timeBudget = timeBudget;
         this.alpha = alpha;
@@ -141,24 +169,74 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         weights = new HashMap<>();
         eligibility = new HashMap<>();
 
-        for (String strategy : unrestrictedSelectionStrategies) {
+        for (String strAcronym : selectionStrategyAcronyms) {
 
-            eligibility.put(strategy, new double[featureExtractor.getNumFeatures()]);
+        	String strategyName = selectionStrategyNames.get(strAcronym.trim());
+            eligibility.put(strategyName, new double[featureExtractor.getNumFeatures()]);
 
             // initializes weights randomly within [-1, 1]
             double[] strategyWeights = new double[featureExtractor.getNumFeatures()];
             for (int i = 0; i < strategyWeights.length; i++) {
                     strategyWeights[i] = (random.nextDouble() * 2) - 1; // randomly initialized in [-1,1]
             }
-            weights.put(strategy, strategyWeights);
+            weights.put(strategyName, strategyWeights);
 
         }
         
         //instantiates the A3N planner
         planner = new A3N(types);
     }
+   
+   public static UnrestrictedPolicySelectionLearner fromConfig(UnitTypeTable types, int randomSeed, Properties config) {
+	   
+	   int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
+		
+	   int timeBudget = Integer.parseInt(config.getProperty("search.timebudget"));
+		
+       double epsilon = Double.parseDouble(config.getProperty("td.epsilon.initial"));
+       //epsilonDecayRate = Double.parseDouble(config.getProperty("td.epsilon.decay", "1.0"));
+       
+       double alpha = Double.parseDouble(config.getProperty("td.alpha.initial"));
+       //alphaDecayRate = Double.parseDouble(config.getProperty("td.alpha.decay", "1.0"));
+       
+       double gamma = Double.parseDouble(config.getProperty("td.gamma"));
+       double lambda = Double.parseDouble(config.getProperty("td.lambda"));
+       
+       String portfolioNames = config.getProperty("portfolio");
+	   
+       // loads the reward model (default=victory-only)
+       RewardModel rewards = RewardModelFactory.getRewardModel(
+		   config.getProperty("rewards", "winlossdraw"), maxCycles
+	   );
+       
+       FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
+		   config.getProperty("features", "materialdistancehp"), types, maxCycles
+	   );
+       
+       List<String> selectionStrategies = Arrays.asList(
+		   config.getProperty("strategies", "CE,FE,HP-,HP+,AV+").split(",")
+	   );
+       
+       // returns a new instance with the loaded parameters
+       return new UnrestrictedPolicySelectionLearner(
+			types, 
+			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))), 
+			rewards,
+			featureExtractor,
+			selectionStrategies,
+			maxCycles,
+			timeBudget, alpha, epsilon, gamma, lambda, randomSeed
+		);
+	   
+   }
 
-    @Override
+    /*private static String[] getSelectioStrategies() {
+    	
+    	String[] names = new String 
+    
+    }*/
+
+	@Override
     public void reset() {
         planner.reset();
     }

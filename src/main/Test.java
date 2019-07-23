@@ -2,6 +2,7 @@ package main;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -17,15 +18,11 @@ import ai.core.AI;
 import config.ConfigManager;
 import config.Parameters;
 import features.FeatureExtractor;
-import features.MapAware;
-import features.MaterialAdvantage;
-import features.UnitDistance;
+import features.FeatureExtractorFactory;
 import learner.UnrestrictedPolicySelectionLearner;
 import portfolio.PortfolioManager;
 import reward.RewardModel;
-import reward.VictoryOnly;
-import reward.WinLossDraw;
-import reward.WinLossTiesBroken;
+import reward.RewardModelFactory;
 import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
@@ -115,28 +112,18 @@ public class Test {
         // creates a UnitTypeTable that should be overwritten by the one in config
         UnitTypeTable types = new UnitTypeTable(settings.getUTTVersion(), settings.getConflictPolicy());
         
-        // loads the reward model (default=victory-only)
-        RewardModel rewards = null;
-        if(config.getProperty("rewards", "victory-only").equals("victory-only")) {
-        	rewards = new VictoryOnly();
-        }
-        else if (config.getProperty("rewards", "victory-only").equals("winloss-tiebreak")) {
-        	 rewards = new WinLossTiesBroken(maxCycles);
-        }
-        else if (config.getProperty("rewards", "victory-only").equals("winlossdraw")) {
-        	rewards = new WinLossDraw(maxCycles);
-        }
+        // loads the reward model (default=winlossdraw)
+        RewardModel rewards = RewardModelFactory.getRewardModel(
+ 		   config.getProperty("rewards", "winlossdraw"), maxCycles
+        );
         
-        FeatureExtractor featureExtractor = null;
-        if(config.getProperty("features", "mapaware").equals("mapaware")) {
-        	featureExtractor = new MapAware(types, maxCycles);
-        }
-        else if (config.getProperty("features", "mapaware").equals("material")) {
-        	 featureExtractor = new MaterialAdvantage(types, maxCycles);
-        }
-        else if (config.getProperty("features", "mapaware").equals("distance")) {
-        	featureExtractor = new UnitDistance(types, maxCycles);
-        }
+        FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
+ 		   config.getProperty("features", "materialdistancehp"), types, maxCycles
+        );
+        
+        List<String> selectionStrategies = Arrays.asList(
+ 		   config.getProperty("strategies", "CE,FE,HP-,HP+,AV+").split(",")
+        );
         
         // creates the player instance and loads weights
         UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner(
@@ -144,6 +131,7 @@ public class Test {
 			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))),
 			rewards,
 			featureExtractor,
+			selectionStrategies,
 			maxCycles,
 			timeBudget, alpha, epsilon, gamma, lambda, randomSeedP0
 		);
