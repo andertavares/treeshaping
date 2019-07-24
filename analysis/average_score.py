@@ -4,11 +4,12 @@ import argparse
 import os
 
 
-def score(filename):
+def score(filename, player_index):
     """
     Calculates the score (victories + 0.5*draws) from the results in a given .csv file
     Victories are matches with result 0, draws are matches with result -1 (losses have result 1)
     :param filename:
+    :param player_index
     :return:
     """
     df = pd.read_csv(filename)
@@ -16,7 +17,7 @@ def score(filename):
     df.rename(columns={'#result': 'result'}, inplace=True)
 
     # score =  number of victories + 0.5 number of draws
-    victories = df[df.result == 0].count()['result']
+    victories = df[df.result == player_index].count()['result']
     draws = df[df.result == -1].count()['result']
     return victories + 0.5 * draws
 
@@ -35,7 +36,7 @@ def average_score(basedir, initial_rep, final_rep, opponent, position):
     filename = 'test-vs-%s_p%d.csv' % (opponent, position) if position is not None else 'test-vs-%s.csv' % opponent
     files = [os.path.join(basedir, 'rep%d' % rep, filename) for rep in range(initial_rep, final_rep + 1)]
     #print([score(f) for f in files])
-    return np.mean([score(f) for f in files])
+    return np.mean([score(f, position) for f in files])
 
 
 if __name__ == '__main__':
