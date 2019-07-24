@@ -40,7 +40,8 @@ def average_score(directories, opponent, position):
     #print([score(f) for f in files])
     
     #print ( [stats(f, position) for f in files])
-    return np.mean([stats(f, position) for f in files], axis=0)
+    player_index = position if position is not None else 0
+    return np.mean([stats(f, player_index) for f in files], axis=0)
 
 
 if __name__ == '__main__':
