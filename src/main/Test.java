@@ -56,6 +56,9 @@ public class Test {
         
         // overrides config with command line parameters
         Parameters.mergeCommandLineIntoProperties(cmd, config);
+        
+        // ensures non-specified parameters get default values
+        Parameters.ensureDefaults(config);
 		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));

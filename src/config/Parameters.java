@@ -169,13 +169,13 @@ public class Parameters {
 			put("strategies",  "CE,FE,HP-,HP+,AV+");
 			put("gui",  "false");
 			put("train_matches", "100" );
-			put("search_timebudget", "100" );
-			put("td_alpha_initial",  "0.01");
-			put("td_lambda",  "0.1");
+			put("search.timebudget", "100" );
+			put("td.alpha.initial",  "0.01");
+			put("td.lambda",  "0.1");
 		}};
 		
 		for(Entry<String, String> param : defaults.entrySet()) {
-			if(!prop.contains(param.getKey())) {
+			if(!prop.containsKey(param.getKey())) {
 				prop.setProperty(param.getKey(), param.getValue());
 				logger.info("Parameter '{}' defaulting to '{}'", param.getKey(), param.getValue());
 			}
