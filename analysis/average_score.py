@@ -21,7 +21,7 @@ def score(filename):
     return victories + 0.5 * draws
 
 
-def average_score(basedir, initial_rep, final_rep, opponent):
+def average_score(basedir, initial_rep, final_rep, opponent, position):
     """
     Calculates the average score in a series of repeated test matches
     against an opponent in a given map
@@ -29,9 +29,11 @@ def average_score(basedir, initial_rep, final_rep, opponent):
     :param initial_rep:
     :param final_rep:
     :param opponent:
+    :param position: player position (0 or 1)
     :return:
     """
-    files = [os.path.join(basedir, 'rep%d' % rep, 'test-vs-%s.csv' % opponent) for rep in range(initial_rep, final_rep + 1)]
+    filename = 'test-vs-%s_p%d.csv' % (opponent, position) if position is not None else 'test-vs-%s.csv' % opponent
+    files = [os.path.join(basedir, 'rep%d' % rep, filename) for rep in range(initial_rep, final_rep + 1)]
     #print([score(f) for f in files])
     return np.mean([score(f) for f in files])
 
@@ -68,8 +70,13 @@ if __name__ == '__main__':
         '-o', '--opponent', required=True,
         help='Opponent name.'
     )
+    
+    parser.add_argument(
+        '-p', '--position', required=False, type=int, choices=[0,1],
+        help='Learning agent position (0 or 1)'
+    )
 
     args = parser.parse_args()
 
-    print(average_score(args.basedir, args.initial_rep, args.final_rep, args.opponent))
+    print(average_score(args.basedir, args.initial_rep, args.final_rep, args.opponent, args.position))
 
