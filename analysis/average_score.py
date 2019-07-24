@@ -36,7 +36,8 @@ def average_score(basedir, initial_rep, final_rep, opponent, position):
     filename = 'test-vs-%s_p%d.csv' % (opponent, position) if position is not None else 'test-vs-%s.csv' % opponent
     files = [os.path.join(basedir, 'rep%d' % rep, filename) for rep in range(initial_rep, final_rep + 1)]
     #print([score(f) for f in files])
-    return np.mean([score(f, position) for f in files])
+    player_index = position if position is none else 0
+    return np.mean([score(f, player_index) for f in files])
 
 
 if __name__ == '__main__':
