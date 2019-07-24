@@ -182,6 +182,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         	String strategyName = selectionStrategyNames.get(strAcronym.trim());
             eligibility.put(strategyName, new double[featureExtractor.getNumFeatures()]);
 
+            // FIXME: in tdLambdaUpdateRule, w has 24 positions and e has 16!
             // initializes weights randomly within [-1, 1]
             double[] strategyWeights = new double[featureExtractor.getNumFeatures()];
             for (int i = 0; i < strategyWeights.length; i++) {
@@ -196,6 +197,8 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     }
    
    public static UnrestrictedPolicySelectionLearner fromConfig(UnitTypeTable types, int randomSeed, Properties config) {
+	   
+	   Logger logger = LogManager.getRootLogger();
 	   
 	   int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
 		
@@ -212,10 +215,11 @@ public class UnrestrictedPolicySelectionLearner extends AI{
        
        String portfolioNames = config.getProperty("portfolio");
 	   
-       // loads the reward model (default=victory-only)
+       // loads the reward model (default=winlossdraw)
        RewardModel rewards = RewardModelFactory.getRewardModel(
 		   config.getProperty("rewards", "winlossdraw"), maxCycles
 	   );
+       logger.debug("Reward model: {}", rewards.getClass().getSimpleName());
        
        FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
 		   config.getProperty("features", "materialdistancehp"), types, maxCycles
@@ -340,9 +344,10 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		
 		double[] f = featureExtractor.extractFeatures(state, player); // feature vector for the state
 		
-		for (String abstractionName : weights.keySet()) {
-			double[] w = weights.get(abstractionName); // weight vector
-			double[] e = eligibility.get(abstractionName); // eligibility vector 
+		for (String strategyName : weights.keySet()) {
+			
+			double[] w = weights.get(strategyName); // weight vector
+			double[] e = eligibility.get(strategyName); // eligibility vector 
 			
 			// certifies that things are ok
 			assert w.length == e.length;

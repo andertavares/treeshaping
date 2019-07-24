@@ -97,6 +97,7 @@ public class Test {
 	 * @throws Exception
 	 */
 	public static void runTestMatches(Properties config, String testPartnerName, String workingDir, int randomSeedP0, int randomSeedP1, boolean writeReplay) throws Exception {
+		Logger logger = LogManager.getRootLogger();
 		
 		int testMatches = Integer.parseInt(config.getProperty("test_matches"));
 		
@@ -121,10 +122,12 @@ public class Test {
         RewardModel rewards = RewardModelFactory.getRewardModel(
  		   config.getProperty("rewards", "winlossdraw"), maxCycles
         );
+        logger.debug("Reward model: {}", rewards.getClass().getSimpleName());
         
         FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
  		   config.getProperty("features", "materialdistancehp"), types, maxCycles
         );
+        logger.debug("Feature extractor: {}", featureExtractor.getClass().getSimpleName());
         
         List<String> selectionStrategies = Arrays.asList(
  		   config.getProperty("strategies", "CE,FE,HP-,HP+,AV+").split(",")
@@ -147,8 +150,6 @@ public class Test {
 		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
 		config.setProperty("random.seed.p1", Integer.toString(randomSeedP1));
 		config.setProperty("portfolio", portfolioNames); //TODO isn't this handled in Parameters class?
-		
-		Logger logger = LogManager.getRootLogger();
 		
 		logger.info("This experiment's config: ");
 		logger.info(config.toString());
