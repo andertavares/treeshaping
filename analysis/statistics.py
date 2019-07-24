@@ -10,7 +10,7 @@ def stats(filename, player_index):
     Victories are matches with result 0, draws are matches with result -1 (losses have result 1)
     :param filename:
     :param player_index
-    :return: wins, draws, losses, score (wins + 0.5*draws) and %score (according to the number of matches) 
+    :return: wins, draws, losses, #matches, score (wins + 0.5*draws) and %score (according to the number of matches) 
     """
     df = pd.read_csv(filename)
     # renames to access with df.result
@@ -23,7 +23,9 @@ def stats(filename, player_index):
     
     score = wins + 0.5 * draws
     
-    return wins, draws, losses, score, score / (wins + draws + losses) #returns the score and its percent
+    num_matches = wins + draws + losses
+    
+    return wins, draws, losses, num_matches, score,  100 * score / num_matches #returns the score and its percent
 
 
 def average_score(directories, opponent, position):
@@ -49,7 +51,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Calculates the statistics in a series of experiments '
                     'against an opponent and returns them.\n'
-                    'The returned statistics are wins,draws,losses,score and %score. '
+                    'The returned statistics are wins,draws,losses,#matches,score and %score. '
                     'In an experiment, the score is #victories + 0.5 * #draws. '
                     'The script looks for files named test-vs-[opponent]_p%d.csv in each of the directories, ' 
                     'where %d is the player index (0 or 1)\n'
