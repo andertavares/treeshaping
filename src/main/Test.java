@@ -144,7 +144,9 @@ public class Test {
 			maxCycles,
 			timeBudget, alpha, epsilon, gamma, lambda, randomSeedP0
 		);
-		player.loadWeights(String.format("%s/weights_%d.bin", workingDir, testPosition));
+        String weightsFile = String.format("%s/weights_%d.bin", workingDir, testPosition);
+        logger.info("Loading weights from {}", weightsFile);
+		player.loadWeights(weightsFile);
 		
 		// updates the config with the overwritten parameters
 		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
