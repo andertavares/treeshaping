@@ -46,6 +46,9 @@ public class Train {
         
         // overrides config with command line parameters
         Parameters.mergeCommandLineIntoProperties(cmd, config);
+        
+        // ensures non-specified parameters are set to default values
+        Parameters.ensureDefaults(config);
 		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
