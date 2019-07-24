@@ -106,9 +106,11 @@ public class Parameters {
 			if("basic".contentEquals(cmd.getOptionValue("strategies"))) {
 				csvStrategies = "CE,FE,HP-,HP+,AV+"; 
 			}
+			
+			logger.info("Parameter 'strategies' set to '{}'", csvStrategies);
+			prop.setProperty("strategies", csvStrategies);
 		}
-		logger.info("Parameter 'strategies' set to '{}'", csvStrategies);
-		prop.setProperty("strategies", csvStrategies);
+		
 		
 		// the portfolio parameter requires a special treatment:
 		// retrieves the portfolio from prop file, with the default as basic8 (4 rush, 4 offense)
