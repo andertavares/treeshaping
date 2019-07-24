@@ -1,7 +1,10 @@
 package config;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -92,6 +95,21 @@ public class Parameters {
 			}
 		}
 		
+		// the strategies parameters requires a special treatment if the user specified "all"
+		String csvStrategies = null;
+		if(cmd.hasOption("strategies")) {
+			
+			if("all".contentEquals(cmd.getOptionValue("strategies"))) {
+				csvStrategies = "CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M"; 
+			}
+			
+			if("basic".contentEquals(cmd.getOptionValue("strategies"))) {
+				csvStrategies = "CE,FE,HP-,HP+,AV+"; 
+			}
+		}
+		logger.info("Parameter 'strategies' set to '{}'", csvStrategies);
+		prop.setProperty("strategies", csvStrategies);
+		
 		// the portfolio parameter requires a special treatment:
 		// retrieves the portfolio from prop file, with the default as basic8 (4 rush, 4 offense)
 		String csvPortfolio = prop.getProperty("portfolio", "WorkerRush, LightRush, RangedRush, HeavyRush, WorkerDefense, LightDefense, RangedDefense, HeavyDefense");
@@ -119,11 +137,51 @@ public class Parameters {
 				csvPortfolio = "WorkerRush, LightRush, RangedRush, HeavyRush, WorkerDefense, LightDefense, RangedDefense, HeavyDefense, BuildBase, BuildBarracks";
 			}
 		}
+		logger.info("Parameter 'portfolio' overridden to '{}'", csvPortfolio);
 		prop.setProperty("portfolio", csvPortfolio);	//stores the chosen portfolio back into prop
 		
 		
 	}
 	
-	
+	/**
+	 * Ensures that default values are in properties. This makes it easier to track
+	 * experiment parameters when a properties loaded from a file with missing values is 
+	 * saved afterwards: with this method, all parameters will be saved.
+	 * Must be called after {@link #mergeCommandLineIntoProperties(CommandLine, Properties)}
+	 * Only config_input and working_dir are not set
+	 * @param prop
+	 */
+	public static void ensureDefaults(Properties prop) {
+		Logger logger = LogManager.getRootLogger();
+		/**
+		 * Maps a parameter name to its default value
+		 */
+		@SuppressWarnings("serial")
+		Map<String,String> defaults = new HashMap<>() {{
+			put("final_rep", "0");
+			put("initial_rep", "0");
+			put("train_opponent", "selfplay");
+			put("portfolio",  "basic4");
+			put("rewards",  "winlossdraw");
+			put("features",  "materialdistancehp");
+			put("test_opponent",  "players.A3N");
+			put("activation",  "identity");
+			put("strategies",  "CE,FE,HP-,HP+,AV+");
+			put("gui",  "false");
+			put("train_matches", "100" );
+			put("search_timebudget", "100" );
+			put("td_alpha_initial",  "0.01");
+			put("td_lambda",  "0.1");
+		}};
+		
+		for(Entry<String, String> param : defaults.entrySet()) {
+			if(!prop.contains(param.getKey())) {
+				prop.setProperty(param.getKey(), param.getValue());
+				logger.info("Parameter '{}' defaulting to '{}'", param.getKey(), param.getValue());
+			}
+		}
+		
+		
+	}
 	
 }
