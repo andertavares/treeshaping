@@ -171,10 +171,18 @@ public class Test {
 		// if write replay (trace) is activated, sets the prefix to write files
 		String tracePrefix = writeReplay ? workingDir + "/test-trace-vs-" + testOpponent.getClass().getSimpleName() : null;
 		
+		AI p0 = player, p1 = testOpponent;
+		if(testPosition == 1) { //swaps the player and opponent if testPosition is activated
+			p0 = testOpponent;
+			p1 = player;
+		}
+		
+		logger.info("Player0={}, Player1={}", p0.getClass().getSimpleName(), p1.getClass().getSimpleName());
+		
 		Runner.repeatedMatches(
 			types, testMatches, 
 			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition), 
-			player, testOpponent, visualizeTest, settings, tracePrefix
+			p0, p1, visualizeTest, settings, tracePrefix
 		);
 		logger.info("Test finished.");
 	}
