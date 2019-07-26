@@ -132,7 +132,12 @@ public class Train {
 		// training matches
 		logger.info("Starting training...");
 		boolean visualizeTraining = Boolean.parseBoolean(config.getProperty("visualize_training", "false"));
-		Runner.repeatedMatches(types, trainMatches, outputPrefix + "/train.csv", player, trainingOpponent, visualizeTraining, settings, null);
+		Runner.repeatedMatches(
+			types, trainMatches, 
+			outputPrefix + "/train.csv", 
+			null, //won't record choices at training time 
+			player, trainingOpponent, visualizeTraining, settings, null
+		);
 		logger.info("Training finished. Saving weights to " + outputPrefix + "/weights_0.bin (and weights_1.bin if selfplay).");
 		// save player weights
 		player.saveWeights(outputPrefix + "/weights_0.bin");

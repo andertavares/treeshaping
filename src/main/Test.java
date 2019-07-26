@@ -183,7 +183,8 @@ public class Test {
 		
 		Runner.repeatedMatches(
 			types, testMatches, 
-			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition), 
+			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
+			workingDir + "/test", //will record choices at test time
 			p0, p1, visualizeTest, settings, tracePrefix
 		);
 		logger.info("Test finished.");

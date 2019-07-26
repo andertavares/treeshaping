@@ -54,9 +54,20 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     */
    private Map<String, double[]> eligibility;
 
+   /**
+    * previous choice
+    */
    private String previousChoiceName;
    
+   /**
+    * current choice
+    */
    private String currentChoiceName;
+   
+   /**
+    * All choices (one per frame)
+    */
+   public List<String> choices;
 
    private GameState previousState;
    
@@ -171,6 +182,8 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         this.decisionInterval = decisionInterval;
 
         random = new Random(randomSeed);
+        
+        choices = new ArrayList<>();
 
         // uses logistic with log loss by default
         //activation = new LogisticLogLoss();
@@ -246,6 +259,14 @@ public class UnrestrictedPolicySelectionLearner extends AI{
    public Map<String, double[]> getWeights(){
 	   return weights;
    }
+   
+   /**
+    * Returns the choices performed by this agent
+    * @return
+    */
+   public List<String> getChoices(){
+	   return choices;
+   }
 
 	@Override
     public void reset() {
@@ -278,8 +299,11 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			previousState = gs.clone(); //cloning fixes a subtle error where gs changes in the game engine and becomes the next state, which is undesired 
 		}
 
+		// logs and stores the current choice (even if unchanged)
+		logger.debug("Frame {}. Player {} chose: {}.", gs.getTime(), player, currentChoiceName);
+		choices.add(currentChoiceName);
+		
 		// sets the unrestricted unit selection policy
-		logger.debug("Frame {}. Player {} chose: {}.",gs.getTime(), player, currentChoiceName);
     	planner.setUnrestrictedSelectionPolicy(currentChoiceName, 1);
     	
     	// gets the action returned by the planner according to the unrestricted selection policy
