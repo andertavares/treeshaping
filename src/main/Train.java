@@ -22,6 +22,20 @@ public class Train {
         Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
         String workingDir = config.getProperty("working_dir");
+        /*
+        String fullDir = String.format("%s/%s/%s-%s-%s/m%d/d%d/a%f-g%f-l%f/", 
+    		workingDir, 
+    		new File(config.getProperty("map_location")).getName().replaceFirst("[.][^.]+$", ""),  //map name without extension
+    		config.getProperty("features"),
+    		config.getProperty("strategies"),
+    		config.getProperty("rewards"),
+    		config.getProperty("train_matches"),
+    		config.getProperty("decision_interval"),
+    		config.getProperty("td.alpha"),
+    		config.getProperty("td.gamma"),
+    		config.getProperty("td.lambda")
+		);*/
+        		
 		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
