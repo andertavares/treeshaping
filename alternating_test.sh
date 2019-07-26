@@ -17,7 +17,6 @@
 echo "Launching test matches in position 0: "
 ./test.sh "$@" --test_position 0
 
-echo "Launching test matches in position 1: "
+echo "\nLaunching test matches in position 1: "
 ./test.sh "$@" --test_position 1 
 
-echo "Done."
