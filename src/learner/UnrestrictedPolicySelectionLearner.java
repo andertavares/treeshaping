@@ -150,7 +150,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
    protected Logger logger;
 
    /**
-    * Creates an agent that attemps to learn the unrestricted unit selection policy
+    * Creates an agent that attempts to learn the unrestricted unit selection policy
     * TODO get rid of portfolio?
     * @param types
     * @param portfolio
@@ -315,7 +315,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		/*
 		 *  if learning from actual experience, the agent never is called to act
 		 *  in a terminal state and therefore, never sees the final reward, 
-		 *  whith is the most important
+		 *  which is the most important
 		 */
 		logger.debug("gameOver. winner={}, playerID={}", winner, playerID);
 		double tdError = rewards.gameOverReward(playerID, winner) - qValue(previousState, playerID, previousChoiceName);
