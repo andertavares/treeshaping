@@ -44,6 +44,7 @@ public class Parameters {
         // ensures non-specified parameters are set to default values
         ensureDefaults(config);
         
+        // parses special parameters (e.g. portfolio, strategies)
         parseSpecialParameters(config);
         
         // config is good to go
@@ -82,19 +83,6 @@ public class Parameters {
         
         return options;
 	}
-	
-	/*
-	 * Retrieve the command line options used on test sessions
-	 * @return
-	 *
-	public static Options testCommandLineOptions() {
-		Options options = trainCommandLineOptions();
-		options.addOption(new Option(null, "save_replay", false, "If omitted, does not generate replay (trace) files."));
-		options.addOption(new Option("m", "test_matches", true, "Number of test matches."));
-		options.addOption(new Option(null, "test_position", true, "0 or 1 (the player index of the agent under test)"));
-		
-		return options;
-	}**/
 	
 	/**
 	 * Merge parameters from command line and properties. 
