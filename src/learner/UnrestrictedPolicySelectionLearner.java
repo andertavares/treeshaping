@@ -285,6 +285,20 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     	// gets the action returned by the planner according to the unrestricted selection policy
         return planner.getAction(player, gs);
     }
+    
+    @Override
+	public void gameOver(int winner) {
+		/*
+		 *  if learning from actual experience, the agent never is called to act
+		 *  in a terminal state and therefore, never sees the final reward, 
+		 *  whith is the most important
+		 */
+		logger.debug("gameOver. winner={}, playerID={}", winner, playerID);
+		double tdError = rewards.gameOverReward(playerID, winner) - qValue(previousState, playerID, previousChoiceName);
+		
+		tdLambdaUpdateRule(previousState, playerID, previousChoiceName, tdError, weights, eligibility);
+		
+	}
 
     /**
 	 * Performs a Sarsa update on the given weights using the given eligibility traces.
