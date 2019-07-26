@@ -4,17 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Properties;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import ai.core.AI;
-import config.ConfigManager;
 import config.Parameters;
 import learner.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
@@ -26,29 +19,9 @@ public class Train {
 	public static void main(String[] args) throws Exception {
 		Logger logger = LogManager.getRootLogger();
 		
-        Options options = Parameters.trainCommandLineOptions();
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = null;
-
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            new HelpFormatter().printHelp("utility-name", options);
-
-            System.exit(1);
-        }
-
-        String configFile = cmd.getOptionValue("config_input");
-        String outputPrefix = cmd.getOptionValue("working_dir");
+        Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
-        Properties config = ConfigManager.loadConfig(configFile);
-        
-        // overrides config with command line parameters
-        Parameters.mergeCommandLineIntoProperties(cmd, config);
-        
-        // ensures non-specified parameters are set to default values
-        Parameters.ensureDefaults(config);
+        String workingDir = config.getProperty("working_dir");
 		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
@@ -57,7 +30,7 @@ public class Train {
 		// repCount counts the actual number of repetitions
 		for (int rep = initialRep, repCount = 0; rep <= finalRep; rep++, repCount++) {
 			// determines the output dir according to the current rep
-			String outDir = outputPrefix + "/rep" + rep;
+			String outDir = workingDir + "/rep" + rep;
 			
 			// checks if that repetition has been played
 			File repDir = new File(outDir);

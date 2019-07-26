@@ -25,7 +25,7 @@ import util.XMLWriter;
 import utils.FileNameUtil;
 
 /**
- * A class to run microRTS games to train and test MetaBot
+ * A class to run microRTS games to train and test RL agents
  * @author anderson
  */
 public class Runner {
@@ -241,15 +241,17 @@ public class Runner {
 			}
     		logger.debug("File didn't exist, creating and writing header");
     		writer = new FileWriter(f, false); //must be after the test, because it creates the file upon instantiation
-    		writer.write("Choices:\n");
+    		writer.write("#frame: choice\n");
     		writer.close();
     	}
     	
     	// appends one line with each choice separated by a \t\n
     	writer = new FileWriter(f, true); 
-    	writer.write("Match " + matchNumber + ":\n\t");
-    	writer.write(String.join("\n\t", choices));
-    	writer.write("\n"); // finishes with a newline
+    	writer.write("Match " + matchNumber + ": \n");
+    	int frame = 0; //counts the frames
+    	for(String choice : choices) {
+    		writer.write(String.format("\t%d: %s\n", frame++, choice)); 
+    	}
     	logger.debug("Successfully wrote to " + path); 
     	
     	writer.close();

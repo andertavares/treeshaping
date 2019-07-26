@@ -5,17 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import ai.core.AI;
-import config.ConfigManager;
 import config.Parameters;
 import features.FeatureExtractor;
 import features.FeatureExtractorFactory;
@@ -36,37 +29,17 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		Logger logger = LogManager.getRootLogger();
 		
-		Options options = Parameters.testCommandLineOptions();
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = null;
-
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            new HelpFormatter().printHelp("utility-name", options);
-
-            System.exit(1);
-        }
-
-        String configFile = cmd.getOptionValue("config_input");
-        String workingDir = cmd.getOptionValue("working_dir");
+		Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
-        Properties config = ConfigManager.loadConfig(configFile);
+        String workingDir = config.getProperty("working_dir");
         
-        // overrides config with command line parameters
-        Parameters.mergeCommandLineIntoProperties(cmd, config);
-        
-        // ensures non-specified parameters get default values
-        Parameters.ensureDefaults(config);
-		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
 		int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
 				
 		String testPartnerName = config.getProperty("test_opponent");
 						
-		boolean writeReplay = cmd.hasOption("save_replay");
+		boolean writeReplay = "true".equals(config.getProperty("save_replay"));
 		logger.info("Will {}save replays (.trace files).", writeReplay ? "" : "NOT ");
 				
 		for (int rep = initialRep; rep <= finalRep; rep++) {
@@ -184,7 +157,7 @@ public class Test {
 		Runner.repeatedMatches(
 			types, testMatches, 
 			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
-			workingDir + "/test", //will record choices at test time
+			workingDir + "/test-vs-" + testOpponent.getClass().getSimpleName(), //will record choices at test time
 			p0, p1, visualizeTest, settings, tracePrefix
 		);
 		logger.info("Test finished.");
