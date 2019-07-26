@@ -145,7 +145,9 @@ public class Test {
 			featureExtractor,
 			selectionStrategies,
 			maxCycles,
-			timeBudget, alpha, epsilon, gamma, lambda, randomSeedP0
+			timeBudget, alpha, epsilon, gamma, lambda,
+			Integer.parseInt(config.getProperty("decision_interval")),
+			randomSeedP0
 		);
         String weightsFile = String.format("%s/weights_%d.bin", workingDir, testPosition);
         logger.info("Loading weights from {}", weightsFile);

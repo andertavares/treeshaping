@@ -37,6 +37,7 @@ public class Parameters {
         options.addOption(new Option(null, "search_timebudget", true, "Milisseconds of planning time."));
         options.addOption(new Option(null, "td_alpha_initial", true, "Initial learning rate (held constant throughout experiment by now)"));
         options.addOption(new Option(null, "td_lambda", true, "Eligibility trace parameter"));
+        options.addOption(new Option(null, "decision_interval", true, "Number of frames to decision_interval a selection (this will be the interval between decision points)."));
         
         return options;
 	}
@@ -67,7 +68,7 @@ public class Parameters {
 		List<String> overrideList = Arrays.asList(
 				"initial_rep", "final_rep", "train_opponent", "test_opponent", 
 				"test_matches", "rewards", "features", "train_matches", "strategies",
-				"test_position"
+				"test_position", "decision_interval"
 		);
 		
 		for(String paramName : overrideList) {
@@ -174,6 +175,7 @@ public class Parameters {
 			put("search.timebudget", "100" );
 			put("td.alpha.initial",  "0.01");
 			put("td.lambda",  "0.1");
+			put("decision_interval", "1");
 		}};
 		
 		for(Entry<String, String> param : defaults.entrySet()) {

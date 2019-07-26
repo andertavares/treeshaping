@@ -42,13 +42,21 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     * The weights are per heuristic
     */
    private Map<String, double[]> weights;
-
+   
+   /**
+    * Interval between decision points
+    */
+   private int decisionInterval;
+   
+   
    /**
     * The vectors of eligibility traces (one per abstraction)
     */
    private Map<String, double[]> eligibility;
 
    private String previousChoiceName;
+   
+   private String currentChoiceName;
 
    private GameState previousState;
    
@@ -129,7 +137,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
     }};
     
    protected Logger logger;
-   
+
    /**
     * Creates an agent that attemps to learn the unrestricted unit selection policy
     * TODO get rid of portfolio?
@@ -150,7 +158,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		   UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, 
 		   FeatureExtractor featureExtractor, List<String> selectionStrategyAcronyms, 
 		   int matchDuration, int timeBudget, double alpha, 
-		   double epsilon, double gamma, double lambda, int randomSeed) 
+		   double epsilon, double gamma, double lambda, int decisionInterval, int randomSeed) 
     {
         this.timeBudget = timeBudget;
         this.alpha = alpha;
@@ -158,11 +166,11 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         this.gamma = gamma;
         this.lambda = lambda;
         this.rewards = rewards;
+        this.featureExtractor = featureExtractor;
         this.matchDuration = matchDuration;
+        this.decisionInterval = decisionInterval;
 
         random = new Random(randomSeed);
-
-        this.featureExtractor = featureExtractor;
 
         // uses logistic with log loss by default
         //activation = new LogisticLogLoss();
@@ -182,7 +190,6 @@ public class UnrestrictedPolicySelectionLearner extends AI{
         	String strategyName = selectionStrategyNames.get(strAcronym.trim());
             eligibility.put(strategyName, new double[featureExtractor.getNumFeatures()]);
 
-            // FIXME: in tdLambdaUpdateRule, w has 24 positions and e has 16!
             // initializes weights randomly within [-1, 1]
             double[] strategyWeights = new double[featureExtractor.getNumFeatures()];
             for (int i = 0; i < strategyWeights.length; i++) {
@@ -198,28 +205,12 @@ public class UnrestrictedPolicySelectionLearner extends AI{
    
    public static UnrestrictedPolicySelectionLearner fromConfig(UnitTypeTable types, int randomSeed, Properties config) {
 	   
-	   Logger logger = LogManager.getRootLogger();
-	   
 	   int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
 		
-	   int timeBudget = Integer.parseInt(config.getProperty("search.timebudget"));
-		
-       double epsilon = Double.parseDouble(config.getProperty("td.epsilon.initial"));
-       //epsilonDecayRate = Double.parseDouble(config.getProperty("td.epsilon.decay", "1.0"));
-       
-       double alpha = Double.parseDouble(config.getProperty("td.alpha.initial"));
-       //alphaDecayRate = Double.parseDouble(config.getProperty("td.alpha.decay", "1.0"));
-       
-       double gamma = Double.parseDouble(config.getProperty("td.gamma"));
-       double lambda = Double.parseDouble(config.getProperty("td.lambda"));
-       
-       String portfolioNames = config.getProperty("portfolio");
-	   
        // loads the reward model (default=winlossdraw)
        RewardModel rewards = RewardModelFactory.getRewardModel(
 		   config.getProperty("rewards", "winlossdraw"), maxCycles
 	   );
-       logger.debug("Reward model: {}", rewards.getClass().getSimpleName());
        
        FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
 		   config.getProperty("features", "materialdistancehp"), types, maxCycles
@@ -232,12 +223,18 @@ public class UnrestrictedPolicySelectionLearner extends AI{
        // returns a new instance with the loaded parameters
        return new UnrestrictedPolicySelectionLearner(
 			types, 
-			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))), 
+			PortfolioManager.getPortfolio(types, Arrays.asList(config.getProperty("portfolio").split(","))), 
 			rewards,
 			featureExtractor,
 			selectionStrategies,
 			maxCycles,
-			timeBudget, alpha, epsilon, gamma, lambda, randomSeed
+			Integer.parseInt(config.getProperty("search.timebudget")), 
+			Double.parseDouble(config.getProperty("td.alpha.initial")), 
+			Double.parseDouble(config.getProperty("td.epsilon.initial")), 
+			Double.parseDouble(config.getProperty("td.gamma")), 
+			Double.parseDouble(config.getProperty("td.lambda")),
+			Integer.parseInt(config.getProperty("decision_interval")),
+			randomSeed
 		);
 	   
    }
@@ -265,26 +262,24 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			logger.error("Called to play with different ID! (mine={}, given={}", playerID, player);
 			logger.error("Will proceed, but behavior might be unpredictable");
 		}
-    	
-		// determines the unrestricted selection policy
-		String currentChoiceName = epsilonGreedy(gs, player, weights, epsilon);
 		
-		if(previousState != null && previousChoiceName != null) {
-			// learns from actual experience
-			sarsaUpdate(previousState, player, previousChoiceName, gs, currentChoiceName, weights, eligibility);
+		// performs a new choice if the interval has passed
+		if (decisionInterval <= 1 || gs.getTime() % decisionInterval == 0) { 
+			// determines the unrestricted selection policy
+			currentChoiceName = epsilonGreedy(gs, player, weights, epsilon);
+			
+			if(previousState != null && previousChoiceName != null) {
+				// learns from actual experience
+				sarsaUpdate(previousState, player, previousChoiceName, gs, currentChoiceName, weights, eligibility);
+			}
+			
+			// updates previous choices for the next sarsa learning update
+			previousChoiceName = currentChoiceName;
+			previousState = gs.clone(); //cloning fixes a subtle error where gs changes in the game engine and becomes the next state, which is undesired 
 		}
-		
-		// updates previous choices for the next sarsa learning update
-		previousChoiceName = currentChoiceName;
-		previousState = gs.clone(); //cloning fixes a subtle error where gs changes in the game engine and becomes the next state, which is undesired 
-		
-		//Date end = new Date(System.currentTimeMillis());
-		logger.debug("Player {} selected {}.",
-			player, currentChoiceName
-		);
-		
 
 		// sets the unrestricted unit selection policy
+		logger.debug("Current choice of player {}: {}.",player, currentChoiceName);
     	planner.setUnrestrictedSelectionPolicy(currentChoiceName, 1);
     	
     	// gets the action returned by the planner according to the unrestricted selection policy
