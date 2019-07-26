@@ -387,7 +387,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			assert w.length == e.length;
 			assert e.length == f.length;
 			
-			// vector updates FIXME error when strategy names are not present on the weight vector
+			// vector updates 
 			for (int i = 0; i < w.length; i++) {
 				w[i] = w[i] + alpha * tdError * e[i]; // weight vector update
 				e[i] = e[i] * gamma * lambda; //the eligibility of all actions decays by gamma * lambda
