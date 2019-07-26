@@ -279,7 +279,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		}
 
 		// sets the unrestricted unit selection policy
-		logger.debug("Frame {}.  Current choice of player {}: {}.",gs.getTime(), player, currentChoiceName);
+		logger.debug("Frame {}. Player {} chose: {}.",gs.getTime(), player, currentChoiceName);
     	planner.setUnrestrictedSelectionPolicy(currentChoiceName, 1);
     	
     	// gets the action returned by the planner according to the unrestricted selection policy
@@ -321,7 +321,8 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			Map<String, double[]> weights, Map<String, double[]> eligibility) {
 		
 		logger.debug(
-			"<s,a,r,s'(gameover?),a',q(s',a')> = <{}, {}, {}, {}({}), {}, {}>",
+			"Player {}: <s,a,r,s'(gameover?),a',q(s',a')> = <{}, {}, {}, {}({}), {}, {}>",
+			player,
 			state.getTime(), actionName, 
 			rewards.reward(nextState, player), 
 			nextState.getTime(), nextState.gameover(), nextActionName,
