@@ -279,7 +279,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		}
 
 		// sets the unrestricted unit selection policy
-		logger.debug("Current choice of player {}: {}.",player, currentChoiceName);
+		logger.debug("Frame {}.  Current choice of player {}: {}.",gs.getTime(), player, currentChoiceName);
     	planner.setUnrestrictedSelectionPolicy(currentChoiceName, 1);
     	
     	// gets the action returned by the planner according to the unrestricted selection policy
