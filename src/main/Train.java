@@ -13,6 +13,7 @@ import learner.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
+import utils.FileNameUtil;
 
 public class Train {
 	
@@ -21,55 +22,23 @@ public class Train {
 		
         Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
-        String workingDir = config.getProperty("working_dir");
-        /*
-        String fullDir = String.format("%s/%s/%s-%s-%s/m%d/d%d/a%f-g%f-l%f/", 
-    		workingDir, 
-    		new File(config.getProperty("map_location")).getName().replaceFirst("[.][^.]+$", ""),  //map name without extension
-    		config.getProperty("features"),
-    		config.getProperty("strategies"),
-    		config.getProperty("rewards"),
-    		config.getProperty("train_matches"),
-    		config.getProperty("decision_interval"),
-    		config.getProperty("td.alpha"),
-    		config.getProperty("td.gamma"),
-    		config.getProperty("td.lambda")
-		);*/
-        		
+        String experimentDir = FileNameUtil.getExperimentDir(config);
+       
+        int repNumber = FileNameUtil.nextAvailableRepNumber(
+    		experimentDir, "true".equals(config.getProperty("restart"))
+    	);
+        
+        String fullDir = String.format("%s/rep%d", experimentDir, repNumber);
+       		
+		// runs one repetition
+		// p0's random seed is the rep number, p1's is 5000 + repNumber  
+		run(config, fullDir, repNumber, repNumber + 5000);
 		
-		// retrieves initial and final reps		
-		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
-		int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
-			
-		// repCount counts the actual number of repetitions
-		for (int rep = initialRep, repCount = 0; rep <= finalRep; rep++, repCount++) {
-			// determines the output dir according to the current rep
-			String outDir = workingDir + "/rep" + rep;
-			
-			// checks if that repetition has been played
-			File repDir = new File(outDir);
-			if(repDir.exists()) {
-				File repFinished = new File(outDir + "/finished");
-				if(repFinished.exists()) {
-					logger.info("Repetition {} already finished, skipping...", rep);
-					continue;
-				}
-				else {
-					logger.info("Repetition {} started, but not finished. Overwriting and continuing from there.", rep);
-					repDir.delete();
-				}
-			}
-			
-			// finally runs one repetition
-			// player 0's random seed increases whereas player 1's decreases with the repetitions  
-			run(config, outDir, rep, finalRep - repCount + 1);
-			
-			// writes a flag file named 'finished' to indicate this repetition ended
-			File repFinished = new File(outDir + "/finished");
-			if (!repFinished.createNewFile()) {
-				logger.error("Unable to create file to indicate that repetition {} has finished!", rep);
-			};
-		}
+		// writes a flag file named 'finished' to indicate that this repetition ended
+		File repFinished = new File(fullDir + "/finished");
+		if (!repFinished.createNewFile()) {
+			logger.error("Unable to create file to indicate that repetition {} has finished!", repNumber);
+		};
 	}
 	
 	public static void run(Properties config, String outputPrefix, int randomSeedP0, int randomSeedP1) throws Exception {
