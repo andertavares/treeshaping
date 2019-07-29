@@ -20,11 +20,6 @@ import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
 
-/**
- * FIXME unable to test a previously trained agent
- * @author anderson
- *
- */
 public class Test {
 	public static void main(String[] args) throws Exception {
 		Logger logger = LogManager.getRootLogger();
