@@ -197,7 +197,6 @@ public class Runner {
         	
         	// saves weights every 'checkpoint' matches (adds 1 to matchNumber because it is starts at 0
         	if (checkpoint > 0 && (matchNumber+1) % checkpoint == 0) {
-        		System.out.println("Checkpointing in match " + matchNumber);
         		checkpoint(ai1, ai2, workingDir, matchNumber+1);
         	}
         	
