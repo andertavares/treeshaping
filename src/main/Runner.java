@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,19 +160,24 @@ public class Runner {
 	 * @param ai1
 	 * @param ai2
 	 * @param visualize
-	 * @param config
+	 * @param gameSettings
 	 * @param traceOutput
+	 * @param overallConfig a Properties object with experiment configuration
 	 * @throws Exception
 	 */
 	public static void repeatedMatches(
 			UnitTypeTable types, int numMatches, String summaryOutput, String choicesPrefix, 
 			AI ai1, AI ai2, 
-			boolean visualize, GameSettings config, String tracePrefix
+			boolean visualize, GameSettings gameSettings, String tracePrefix, 
+			Properties overallConfig
 	) throws Exception {
 		
 		Logger logger = LogManager.getRootLogger();
 		
-		for(int i = 0; i < numMatches; i++){
+		int checkpoint = Integer.parseInt(overallConfig.getProperty("checkpoint"));
+		String workingDir = overallConfig.getProperty("working_dir");
+		
+		for(int matchNumber = 0; matchNumber < numMatches; matchNumber++){
         	
         	//determines the trace output file. It is either null or the one calculated from the specified prefix
     		String traceOutput = null;
@@ -184,11 +190,16 @@ public class Runner {
     		}
         	
         	Date begin = new Date(System.currentTimeMillis());
-        	int result = match(types, ai1, ai2, visualize, config, traceOutput);
+        	int result = match(types, ai1, ai2, visualize, gameSettings, traceOutput);
         	Date end = new Date(System.currentTimeMillis());
         	
-        	System.out.print(String.format("\rMatch %8d finished with result %3d.", i+1, result));
-        	//logger.info(String.format("Match %8d finished.", i+1));
+        	System.out.print(String.format("\rMatch %8d finished with result %3d.", matchNumber+1, result));
+        	
+        	// saves weights every 'checkpoint' matches (adds 1 to matchNumber because it is starts at 0
+        	if (checkpoint > 0 && (matchNumber+1) % checkpoint == 0) {
+        		checkpoint(ai1, ai2, workingDir, matchNumber+1);
+        	}
+        	
         	
         	// writes summary
         	long duration = end.getTime() - begin.getTime();
@@ -206,11 +217,11 @@ public class Runner {
         		try{
         			//outputs choices for both players
         			if(ai1 instanceof UnrestrictedPolicySelectionLearner) {
-	        			outputChoices(choicesPrefix + "_p0.choices", i, ((UnrestrictedPolicySelectionLearner)ai1).getChoices());
+	        			outputChoices(choicesPrefix + "_p0.choices", matchNumber, ((UnrestrictedPolicySelectionLearner)ai1).getChoices());
         			}
         			
         			if(ai2 instanceof UnrestrictedPolicySelectionLearner) {
-	        			outputChoices(choicesPrefix + "_p1.choices", i, ((UnrestrictedPolicySelectionLearner)ai2).getChoices());
+	        			outputChoices(choicesPrefix + "_p1.choices", matchNumber, ((UnrestrictedPolicySelectionLearner)ai2).getChoices());
         			}
         		}
         		catch(IOException ioe){
@@ -226,6 +237,39 @@ public class Runner {
         logger.info("Executed " + numMatches + " matches.");
 	}
 	
+	/**
+	 * Writes the weights of the AIs if they're able to save weights
+	 * @param ai1
+	 * @param ai2
+	 * @param workingDir
+	 */
+	private static void checkpoint(AI ai1, AI ai2, String workingDir, int matchNumber) {
+		
+		Logger logger = LogManager.getRootLogger();
+		
+		// casts and save the weights
+		if(ai1 instanceof UnrestrictedPolicySelectionLearner) {
+			try {
+				((UnrestrictedPolicySelectionLearner) ai1).saveWeights(
+					String.format("%s/weights_0-m%d.bin", workingDir, matchNumber)
+				);
+			} catch (IOException e) {
+				logger.error("Unable to save weights for player 0", e);
+			}
+			
+		}
+		
+		if(ai2 instanceof UnrestrictedPolicySelectionLearner) {
+			try {
+				((UnrestrictedPolicySelectionLearner) ai1).saveWeights(
+					String.format("%s/weights_1-m%d.bin", workingDir, matchNumber)
+				);
+			} catch (IOException e) {
+				logger.error("Unable to save weights for player 1", e);
+			}
+		}
+	}
+
 	public static void outputChoices(String path, int matchNumber, List<String> choices) throws IOException{
 
 		// creates the choices file and required dirs if necessary

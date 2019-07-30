@@ -80,6 +80,7 @@ public class Parameters {
 		options.addOption(new Option(null, "save_replay", false, "If omitted, does not generate replay (trace) files."));
 		options.addOption(new Option(null, "test_matches", true, "Number of test matches."));
 		options.addOption(new Option(null, "test_position", true, "0 or 1 (the player index of the agent under test)"));
+		options.addOption(new Option(null, "checkpoint", true, "Saves the weights every 'checkpoint' matches."));
 		
 		options.addOption(new Option(null, "restart", true, "(must indicate true or false) Restart an unfinished experiment (make sure it is not running in another program instance!)"));
         
@@ -218,7 +219,9 @@ public class Parameters {
 			put("search.timebudget", "100" );
 			put("td.alpha.initial",  "0.01");
 			put("td.lambda",  "0.1");
+			
 			put("decision_interval", "1");
+			put("checkpoint", "10");
 			
 			put("restart", "false");
 		}};

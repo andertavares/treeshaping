@@ -153,7 +153,8 @@ public class Test {
 			types, testMatches, 
 			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
 			workingDir + "/test-vs-" + testOpponent.getClass().getSimpleName(), //will record choices at test time
-			p0, p1, visualizeTest, settings, tracePrefix
+			p0, p1, visualizeTest, settings, tracePrefix, 
+			config
 		);
 		logger.info("Test finished.");
 	}

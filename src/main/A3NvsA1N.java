@@ -2,6 +2,7 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -92,6 +93,11 @@ public class A3NvsA1N {
 		);
         AI a1n = new A1N(types); 
         
+        // creates a dummy config object with suitable parameters for the runner
+        Properties dummyConfig = new Properties();
+        dummyConfig.setProperty("working_dir", cmd.getOptionValue("working_dir"));
+        dummyConfig.setProperty("checkpoint", "0");
+        
         // run half the matches with p0 = a3n
         Runner.repeatedMatches(
 			types, 
@@ -101,7 +107,8 @@ public class A3NvsA1N {
 			a3n, a1n, 
 			false, // won't visualize
 			settings, 
-			experimentDir + "/A3N-vs-A1N"	// will record traces
+			experimentDir + "/A3N-vs-A1N",	// will record traces
+			dummyConfig	
 		);
 		logger.info("Finished running A3N as player 0 at {}", settings.getMapLocation());
 		
@@ -115,7 +122,8 @@ public class A3NvsA1N {
 			a1n, a3n, 
 			false, // won't visualize
 			settings, 
-			experimentDir + "/A1N-vs-A3N"	// will record traces
+			experimentDir + "/A1N-vs-A3N",	// will record traces
+			dummyConfig
 		);
         logger.info("Finished running A3N as player 1 at {}", settings.getMapLocation());
         
