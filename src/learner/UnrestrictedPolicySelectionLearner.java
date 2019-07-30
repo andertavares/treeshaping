@@ -134,7 +134,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
      * A map from acronyms to actual class names inside A3N original project
      */
     @SuppressWarnings("serial")
-	protected final static Map<String,String> selectionStrategyNames = new HashMap<>() {{
+	public final static Map<String,String> selectionStrategyNames = new HashMap<>() {{
     	put("CC", "ManagerClosest");
     	put("CE", "ManagerClosestEnemy");
     	put("FC", "ManagerFather");

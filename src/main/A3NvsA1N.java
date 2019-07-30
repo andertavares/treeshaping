@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.jdom.JDOMException;
 
 import ai.core.AI;
+import learner.UnrestrictedPolicySelectionLearner;
 import players.A1N;
 import players.A3N;
 import rts.GameSettings;
@@ -24,7 +25,6 @@ import utils.CyclesCalculator;
 
 /**
  * Runs A3N vs A1N in a given map
- * TODO customize A3N's policy
  * @author anderson
  *
  */
@@ -38,6 +38,8 @@ public class A3NvsA1N {
         options.addOption(new Option("m", "map_location", true, "Map to test"));
         options.addOption(new Option("d", "working_dir", true, "Directory to store results"));
         options.addOption(new Option("n", "num_matches", true, "Number of matches (half starting at each position)"));
+        options.addOption(new Option("s", "strategy", true, "Unrestricted unit selection strategy (one of CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M)"));
+        options.addOption(new Option("u", "unrestricted", true, "Number of unrestricted units"));
         
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
@@ -50,10 +52,11 @@ public class A3NvsA1N {
             System.exit(1);
         }
         
-        String experimentDir = String.format("%s/%s/m%s", //all strings because they're retrieved from Property object 
+        String experimentDir = String.format("%s/%s/s%s-u%s", //all strings because they're retrieved from Property object 
     		cmd.getOptionValue("working_dir"), 
     		new File(cmd.getOptionValue("map_location")).getName().replaceFirst("[.][^.]+$", ""),  //map name without extension
-    		cmd.getOptionValue("num_matches")
+    		cmd.getOptionValue("strategy"),
+    		cmd.getOptionValue("unrestricted") 
 		);
         
         GameSettings settings = new GameSettings(
@@ -66,13 +69,27 @@ public class A3NvsA1N {
     		null, null
 		);
         
-        int numMatches = Integer.parseInt(cmd.getOptionValue("num_matches")); 
+        // number of matches can be specified via command line, but defaults to 40
+        int numMatches = cmd.hasOption("num_matches") ? Integer.parseInt(cmd.getOptionValue("num_matches")) : 40; 
         
         UnitTypeTable types = new UnitTypeTable(
     		settings.getUTTVersion(), settings.getConflictPolicy()
     	);
         
-        AI a3n = new A3N(types);
+        String strategyName = UnrestrictedPolicySelectionLearner.selectionStrategyNames.get(cmd.getOptionValue("strategy"));
+        
+        logger.info(
+        	"Testing A3N with strategy {} ({}) and {} unrestricted units for {} matches.", 
+        	cmd.getOptionValue("strategy"), strategyName, 
+        	cmd.getOptionValue("unrestricted"),
+        	numMatches
+        );
+        
+        AI a3n = new A3N(
+    		types, 
+    		strategyName, 
+    		Integer.parseInt(cmd.getOptionValue("unrestricted"))
+		);
         AI a1n = new A1N(types); 
         
         // run half the matches with p0 = a3n
@@ -101,6 +118,8 @@ public class A3NvsA1N {
 			experimentDir + "/A1N-vs-A3N"	// will record traces
 		);
         logger.info("Finished running A3N as player 1 at {}", settings.getMapLocation());
+        
+        logger.info("Done. Results are in {}", experimentDir);
 	}
 
 }
