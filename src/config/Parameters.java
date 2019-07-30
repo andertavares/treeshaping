@@ -100,7 +100,7 @@ public class Parameters {
 		List<String> overrideList = Arrays.asList(
 				"working_dir", "initial_rep", "final_rep", "train_opponent", "test_opponent", 
 				"test_matches", "rewards", "features", "train_matches", "strategies",
-				"test_position", "decision_interval", "restart"
+				"test_position", "decision_interval", "restart", "checkpoint"
 		);
 		
 		for(String paramName : overrideList) {

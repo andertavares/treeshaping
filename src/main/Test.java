@@ -150,11 +150,12 @@ public class Test {
 		logger.info("Player0={}, Player1={}", p0.getClass().getSimpleName(), p1.getClass().getSimpleName());
 		
 		Runner.repeatedMatches(
-			types, testMatches, 
+			types, workingDir,
+			testMatches, 
 			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
 			workingDir + "/test-vs-" + testOpponent.getClass().getSimpleName(), //will record choices at test time
 			p0, p1, visualizeTest, settings, tracePrefix, 
-			config
+			0 // no checkpoints
 		);
 		logger.info("Test finished.");
 	}

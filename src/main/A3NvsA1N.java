@@ -101,6 +101,7 @@ public class A3NvsA1N {
         // run half the matches with p0 = a3n
         Runner.repeatedMatches(
 			types, 
+			experimentDir,
 			numMatches / 2,
 			experimentDir + "/A3N-vs-A1N.csv", 
 			null, //won't record choices at training time 
@@ -108,7 +109,7 @@ public class A3NvsA1N {
 			false, // won't visualize
 			settings, 
 			experimentDir + "/A3N-vs-A1N",	// will record traces
-			dummyConfig	
+			0 //no checkpoints	
 		);
 		logger.info("Finished running A3N as player 0 at {}", settings.getMapLocation());
 		
@@ -116,6 +117,7 @@ public class A3NvsA1N {
 		// run the other half with p1 = a3n
         Runner.repeatedMatches(
 			types, 
+			experimentDir,
 			numMatches / 2,
 			experimentDir + "/A1N-vs-A3N.csv", 
 			null, //won't record choices at training time 
@@ -123,7 +125,7 @@ public class A3NvsA1N {
 			false, // won't visualize
 			settings, 
 			experimentDir + "/A1N-vs-A3N",	// will record traces
-			dummyConfig
+			0 // no checkpoints
 		);
         logger.info("Finished running A3N as player 1 at {}", settings.getMapLocation());
         

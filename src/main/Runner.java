@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -155,27 +154,28 @@ public class Runner {
 	 * Runs the specified number of matches, without the GUI, saving the summary to the specified file.
 	 * Saves the trace of each match sequentially according to the tracePrefix is not null
 	 * @param types
+	 * @param workingDir
 	 * @param numMatches
 	 * @param summaryOutput
+	 * @param choicesPrefix
 	 * @param ai1
 	 * @param ai2
 	 * @param visualize
 	 * @param gameSettings
-	 * @param traceOutput
-	 * @param overallConfig a Properties object with experiment configuration
+	 * @param tracePrefix
+	 * @param checkpoint
 	 * @throws Exception
 	 */
 	public static void repeatedMatches(
-			UnitTypeTable types, int numMatches, String summaryOutput, String choicesPrefix, 
+			UnitTypeTable types, 
+			String workingDir, 
+			int numMatches, String summaryOutput, String choicesPrefix, 
 			AI ai1, AI ai2, 
 			boolean visualize, GameSettings gameSettings, String tracePrefix, 
-			Properties overallConfig
+			int checkpoint
 	) throws Exception {
 		
 		Logger logger = LogManager.getRootLogger();
-		
-		int checkpoint = Integer.parseInt(overallConfig.getProperty("checkpoint"));
-		String workingDir = overallConfig.getProperty("working_dir");
 		
 		for(int matchNumber = 0; matchNumber < numMatches; matchNumber++){
         	
@@ -197,6 +197,7 @@ public class Runner {
         	
         	// saves weights every 'checkpoint' matches (adds 1 to matchNumber because it is starts at 0
         	if (checkpoint > 0 && (matchNumber+1) % checkpoint == 0) {
+        		System.out.println("Checkpointing in match " + matchNumber);
         		checkpoint(ai1, ai2, workingDir, matchNumber+1);
         	}
         	

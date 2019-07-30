@@ -41,7 +41,7 @@ public class Train {
 		};
 	}
 	
-	public static void run(Properties config, String outputPrefix, int randomSeedP0, int randomSeedP1) throws Exception {
+	public static void run(Properties config, String workingDir, int randomSeedP0, int randomSeedP1) throws Exception {
 		
 		int trainMatches = Integer.parseInt(config.getProperty("train_matches"));
 		//int testMatches = Integer.parseInt(config.getProperty("test_matches"));
@@ -72,18 +72,18 @@ public class Train {
 		
 		Logger logger = LogManager.getRootLogger();
 		
-		logger.info("This experiment's config (to be copied to "+ outputPrefix + "/settings.properties): ");
+		logger.info("This experiment's config (to be copied to "+ workingDir + "/settings.properties): ");
 		logger.info(config.toString());
 		
 		// creates output directory if needed
-		File f = new File(outputPrefix);
+		File f = new File(workingDir);
 		if (!f.exists()) {
-			logger.info("Creating directory " + outputPrefix);
+			logger.info("Creating directory " + workingDir);
 			System.out.println();
 			f.mkdirs();
 		}
 		
-		config.store(new FileOutputStream(outputPrefix + "/settings.properties"), null);
+		config.store(new FileOutputStream(workingDir + "/settings.properties"), null);
 		
 		// training matches
 		logger.info("Starting training...");
@@ -92,19 +92,21 @@ public class Train {
 		
 		
 		Runner.repeatedMatches(
-			types, trainMatches, 
-			outputPrefix + "/train.csv", 
+			types, workingDir, 
+			trainMatches, 
+			workingDir + "/train.csv", 
 			null, //won't record choices at training time 
 			player, trainingOpponent, visualizeTraining, settings, null,
-			config
+			Integer.parseInt(config.getProperty("checkpoint"))
 		);
-		logger.info("Training finished. Saving weights to " + outputPrefix + "/weights_0.bin (and weights_1.bin if selfplay).");
+		
+		logger.info("Training finished. Saving weights to " + workingDir + "/weights_0.bin (and weights_1.bin if selfplay).");
 		// save player weights
-		player.saveWeights(outputPrefix + "/weights_0.bin");
+		player.saveWeights(workingDir + "/weights_0.bin");
 		
 		//save opponent weights if selfplay
 		if (trainingOpponent instanceof UnrestrictedPolicySelectionLearner) {
-			((UnrestrictedPolicySelectionLearner) trainingOpponent).saveWeights(outputPrefix + "/weights_1.bin");
+			((UnrestrictedPolicySelectionLearner) trainingOpponent).saveWeights(workingDir + "/weights_1.bin");
 		}
 		
 		/*// test matches
