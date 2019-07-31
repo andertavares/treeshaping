@@ -69,7 +69,7 @@ if __name__ == '__main__':
 #     )
     
     parser.add_argument(
-        '-p', '--position', required=False, type=int, choices=[0,1], default=0
+        '-p', '--position', required=False, type=int, choices=[0,1], default=0,
         help='Learning agent position (0 or 1)'
     )
     
