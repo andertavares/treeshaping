@@ -76,7 +76,7 @@ if __name__ == '__main__':
     )
     
     parser.add_argument(
-        '-e', '--explain', required=False, action='store_true', default=False
+        '-e', '--explain', required=False, action='store_true', default=False,
         help='Describe what each number is.'
     )
     
