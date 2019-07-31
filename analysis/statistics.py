@@ -74,9 +74,18 @@ if __name__ == '__main__':
         '-p', '--position', required=False, type=int, choices=[0,1],
         help='Learning agent position (0 or 1)'
     )
+    
+    parser.add_argument(
+        '-e', '--explain', required=False, action='store_true', default=False
+        help='Describe what each number is.'
+    )
+    
+    
 
     args = parser.parse_args()
 
-    print("wins, draws, losses, #matches, score, %score")
-    print(", ".join([str(x) for x in average_score(args.directories, args.opponent, args.position)] ))
+    if args.explain:
+        print("wins,draws,losses,matches,score,%score")
+        
+    print(",".join([str(x) for x in average_score(args.directories, args.opponent, args.position)] ))
 
