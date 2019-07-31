@@ -85,5 +85,5 @@ if __name__ == '__main__':
     if args.explain:
         print("wins,draws,losses,matches,score,%score")
         
-    print(",".join([str(x) for x in average_score(args.files, args.opponent, args.position)] ))
+    print(",".join([str(x) for x in average_score(args.files, args.position)] ))
 
