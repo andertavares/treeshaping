@@ -19,6 +19,8 @@ for m in {TwoBasesBarracks16x16,basesWorkers16x16A,basesWorkers24x24A,basesWorke
 			path=results/$m/s$s-u$u/$file
 			if [ -f $path ]; then
 				echo "$m,$s,$u,`python3 analysis/statistics.py $path -p $position`"
+			else
+				echo "$path does not exist"
 			fi
 		done
 	done
