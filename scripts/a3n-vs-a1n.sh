@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# runs one execution of main.A3NvsA1N, please look at main.A3NvsA1N.java for the
-# list of parameters
+# Runs one execution of main.A3NvsA1N 
+# Please look at main.A3NvsA1N.java for the list of parameters
 
 
 # compiles project
