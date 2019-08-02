@@ -20,6 +20,8 @@ class Client(object):
         self.done = os.path.join(basedir, "done.txt")
         self.lock_file = os.path.join(basedir, ".lock")
 
+        self.attempts = 0
+
     def run(self):
 
         while True:
@@ -38,9 +40,19 @@ class Client(object):
             else:
                 self.find_job()
 
-                if self.job is None:
-                    print("No job found. Sleeping for 5 seconds...")
-                    time.sleep(5)
+                if self.job is None:  # job not found, see if max attempts was reached
+                    self.attempts += 1
+
+                    if self.attempts >= 5:
+                        print("Halting after 5 unsuccessful attempts to find a job. ")
+                        return
+
+                    else:
+                        print("No job found (attempt #%d). Sleeping for 5 seconds..." % self.attempts)
+                        time.sleep(5)
+
+                else: # job found, resets the attempt counter
+                    self.attempts = 0
 
     def find_job(self):
         self.lock()
@@ -109,3 +121,4 @@ if __name__ == '__main__':
     print("Starting simple file job client.")
     client = Client(sys.argv[1])
     client.run()
+    print("Goodbye.")
