@@ -104,7 +104,7 @@ public class A3NvsA1N {
 			experimentDir,
 			numMatches / 2,
 			experimentDir + "/A3N-vs-A1N.csv", 
-			null, //won't record choices at training time 
+			null, //won't record choices  
 			a3n, a1n, 
 			false, // won't visualize
 			settings, 
@@ -120,7 +120,7 @@ public class A3NvsA1N {
 			experimentDir,
 			numMatches / 2,
 			experimentDir + "/A1N-vs-A3N.csv", 
-			null, //won't record choices at training time 
+			null, //won't record choices  
 			a1n, a3n, 
 			false, // won't visualize
 			settings, 
