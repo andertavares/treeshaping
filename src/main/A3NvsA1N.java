@@ -71,8 +71,7 @@ public class A3NvsA1N {
 		);
         
         // number of matches can be specified via command line, but defaults to 40
-        int numMatches = cmd.hasOption("num_matches") ? Integer.parseInt(cmd.getOptionValue("num_matches")) : 40; 
-        
+        int numMatches = Integer.parseInt(cmd.getOptionValue("num_matches", "40")); 
         UnitTypeTable types = new UnitTypeTable(
     		settings.getUTTVersion(), settings.getConflictPolicy()
     	);
@@ -91,7 +90,11 @@ public class A3NvsA1N {
     		strategyName, 
     		Integer.parseInt(cmd.getOptionValue("unrestricted"))
 		);
-        AI a1n = new A1N(types); 
+        AI a1n = new A3N( // uses A3N with 0 unrestricted units as a proxy for A1N
+    		types, 
+    		"ManagerFather", // should make no difference 
+    		0				 // must be zero, otherwise will behave as A3N
+		);//new A1N(types); 
         
         // creates a dummy config object with suitable parameters for the runner
         Properties dummyConfig = new Properties();
