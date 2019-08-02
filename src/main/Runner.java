@@ -21,7 +21,6 @@ import rts.PlayerAction;
 import rts.Trace;
 import rts.TraceEntry;
 import rts.units.UnitTypeTable;
-import util.XMLWriter;
 import utils.FileNameUtil;
 
 /**
@@ -141,10 +140,9 @@ public class Runner {
     			  f.getParentFile().mkdirs();
 			}
     		
-    		// writes the trace for real
-			XMLWriter xml = new XMLWriter(new FileWriter(traceOutput));
-	        replay.toxml(xml);
-	        xml.flush();
+    		// writes the zipped trace file (much smaller)
+    		replay.toZip(traceOutput +".zip");
+    		
 		}
 		
 		return state.winner();
@@ -189,6 +187,7 @@ public class Runner {
     			);
     		}
         	
+    		// runs the match, recording the initial and finishing times
         	Date begin = new Date(System.currentTimeMillis());
         	int result = match(types, ai1, ai2, visualize, gameSettings, traceOutput);
         	Date end = new Date(System.currentTimeMillis());
