@@ -13,7 +13,7 @@ for map in {basesWorkers8x8,NoWhereToRun9x8,TwoBasesBarracks16x16}; do
 
 	for l in {0.1,0.3,0.5,0.7,0.9,1.0}; do
 		expstr="./test.sh --test_matches $3 -i $4 -f $5 -d \
-		$map/fmaterialdistancehp_sCC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M_rwinlossdraw/m$2/d10/a0.01_e0.1_g1.0_l$l" 
+		$1/$map/fmaterialdistancehp_sCC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M_rwinlossdraw/m$2/d10/a0.01_e0.1_g1.0_l$l" 
 		
 		echo $expstr
 		
