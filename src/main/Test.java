@@ -1,20 +1,14 @@
 package main;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import ai.core.AI;
+import config.ConfigManager;
 import config.Parameters;
-import features.FeatureExtractor;
-import features.FeatureExtractorFactory;
 import learner.UnrestrictedPolicySelectionLearner;
-import portfolio.PortfolioManager;
-import reward.RewardModel;
-import reward.RewardModelFactory;
 import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
@@ -25,31 +19,35 @@ public class Test {
 		
 		Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
-		// user must specify the full dir, including rep%d/
-        String workingDir = config.getProperty("working_dir");
+		String baseDir = config.getProperty("working_dir");
+		
+		// retrieves the number of matches to set into the repConfig below
+		int numMatches = Integer.parseInt(config.getProperty("test_matches"));
         
 		// retrieves initial and final reps		
-		//int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
-		//int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
+		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
+		int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
 				
 		String testPartnerName = config.getProperty("test_opponent");
 						
 		boolean writeReplay = "true".equals(config.getProperty("save_replay"));
 		logger.info("Will {}save replays (.trace files).", writeReplay ? "" : "NOT ");
-				
-		// determines the output dir according to the current rep
-		//String currentDir = workingDir + "/rep" + rep;
 		
-		// checks if that repetition has finished (otherwise it is not a good idea to test
-		/*File repFinished = new File(currentDir + "/finished");
-		if(! repFinished.exists()) {
-			logger.warn("Repetition {} has not finished! Skipping...", rep);
-			continue;
-		}*/
 		
-		// runs one repetition
-		// random seed = 0 should make no difference (no greedy actions)  
-		runTestMatches(config, testPartnerName, workingDir, 0, 0, writeReplay);
+		for(int rep = initialRep; rep <= finalRep; rep++ ) {	
+			String repDir = String.format("%s/rep%d", baseDir, rep);
+
+			// loads the configuration, ensuring default values are set
+			Properties repConfig = ConfigManager.loadConfig(repDir + "/settings.properties");
+			repConfig = Parameters.ensureDefaults(repConfig);
+			
+			// puts the number of test matches into the config
+			repConfig.setProperty("test_matches", ""+numMatches); //""+ is just to easily convert to string
+			
+			// runs one repetition
+			// random seed = 0 should make no difference (no greedy actions)  
+			runTestMatches(repConfig, testPartnerName, repDir, 0, 0, writeReplay);
+		}
 			
 	}
 		
@@ -70,86 +68,66 @@ public class Test {
 		
 		int testMatches = Integer.parseInt(config.getProperty("test_matches"));
 		
-		int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
-		int timeBudget = Integer.parseInt(config.getProperty("search.timebudget"));
+		// voids learning and exploration
+		config.setProperty("td.alpha.initial", "0");
+		config.setProperty("td.epsilon.initial", "0");
 		
-        double epsilon = 0;
-        double alpha = 0; //Double.parseDouble(config.getProperty("td.alpha.initial"));
-        
-        double gamma = Double.parseDouble(config.getProperty("td.gamma"));
-        double lambda = Double.parseDouble(config.getProperty("td.lambda"));
-
-        String portfolioNames = config.getProperty("portfolio");
-        
         // loads microRTS game settings
      	GameSettings settings = GameSettings.loadFromConfig(config);
      		
         // creates a UnitTypeTable that should be overwritten by the one in config
         UnitTypeTable types = new UnitTypeTable(settings.getUTTVersion(), settings.getConflictPolicy());
         
-        // loads the reward model (default=winlossdraw)
-        RewardModel rewards = RewardModelFactory.getRewardModel(
- 		   config.getProperty("rewards", "winlossdraw"), maxCycles
-        );
-        logger.debug("Reward model: {}", rewards.getClass().getSimpleName());
-        
-        FeatureExtractor featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
- 		   config.getProperty("features", "materialdistancehp"), types, maxCycles
-        );
-        logger.debug("Feature extractor: {}", featureExtractor.getClass().getSimpleName());
-        
-        List<String> selectionStrategies = Arrays.asList(
- 		   config.getProperty("strategies", "CE,FE,HP-,HP+,AV+").split(",")
-        );
-        
-        // creates the player instance and loads weights according to its position
-        int testPosition = Integer.parseInt(config.getProperty("test_position", "0"));
-        UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner(
-			types, 
-			PortfolioManager.getPortfolio(types, Arrays.asList(portfolioNames.split(","))),
-			rewards,
-			featureExtractor,
-			selectionStrategies,
-			maxCycles,
-			timeBudget, alpha, epsilon, gamma, lambda,
-			Integer.parseInt(config.getProperty("decision_interval")),
-			randomSeedP0
-		);
-        String weightsFile = String.format("%s/weights_%d.bin", workingDir, testPosition);
-        logger.info("Loading weights from {}", weightsFile);
-		player.loadWeights(weightsFile);
-		
-		logger.info("This experiment's config: ");
+        logger.info("This experiment's config: ");
 		logger.info(config.toString());
 		
-		//config.store(new FileOutputStream(workingDir + "/settings.properties"), null);
-		
-		// test matches
-		logger.info("Starting test...");
 		boolean visualizeTest = Boolean.parseBoolean(config.getProperty("visualize_test", "false"));
-		AI testOpponent = AILoader.loadAI(testPartnerName, types);
-		
+        
 		logger.info("{} write replay.", writeReplay ? "Will" : "Will not");
 		
-		// if write replay (trace) is activated, sets the prefix to write files
-		String tracePrefix = writeReplay ? workingDir + "/test-trace-vs-" + testOpponent.getClass().getSimpleName() : null;
+		UnrestrictedPolicySelectionLearner player = UnrestrictedPolicySelectionLearner.fromConfig(
+    		types, randomSeedP0, config
+        );
 		
-		AI p0 = player, p1 = testOpponent;
-		if(testPosition == 1) { //swaps the player and opponent if testPosition is activated
-			p0 = testOpponent;
-			p1 = player;
-		}
+		AI testOpponent = AILoader.loadAI(testPartnerName, types);
 		
-		logger.info("Player0={}, Player1={}", p0.getClass().getSimpleName(), p1.getClass().getSimpleName());
-		
-		Runner.repeatedMatches(
-			types, workingDir,
-			testMatches, 
-			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
-			workingDir + "/test-vs-" + testOpponent.getClass().getSimpleName(), //will record choices at test time
-			p0, p1, visualizeTest, settings, tracePrefix, 
-			0 // no checkpoints
-		);
+        // tests the learner both as player 0 and 1
+        for (int testPosition = 0; testPosition < 2; testPosition++) {
+        	// creates the player instance and loads weights according to its position
+            
+            String weightsFile = String.format("%s/weights_%d.bin", workingDir, testPosition);
+            logger.info("Loading weights from {}", weightsFile);
+    		player.loadWeights(weightsFile);
+    		
+    		// if write replay (trace) is activated, sets the prefix to write files
+    		String tracePrefix = null;
+    		if(writeReplay) {
+    			tracePrefix = String.format(
+    				"%s/test-trace-vs-%s_p%d", 
+    				workingDir, testOpponent.getClass().getSimpleName(), 
+    				testPosition
+    			); 
+    		}
+    				
+    		AI p0 = player, p1 = testOpponent;
+    		if(testPosition == 1) { //swaps the player and opponent if testPosition is activated
+    			p0 = testOpponent;
+    			p1 = player;
+    		}
+    		
+    		logger.info("Testing: Player0={}, Player1={}", p0.getClass().getSimpleName(), p1.getClass().getSimpleName());
+    		
+    		Runner.repeatedMatches(
+    			types, workingDir,
+    			testMatches / 2, //half the matches in each position
+    			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
+    			String.format("%s/test-vs-%s", workingDir, testOpponent.getClass().getSimpleName()), //runner infers the test position, no need to pass in the prefix
+    			p0, p1, visualizeTest, settings, tracePrefix, 
+    			0 // no checkpoints
+    		);
+        }
+        
+        
 		logger.info("Test finished.");
 	}
 }
