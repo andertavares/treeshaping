@@ -214,7 +214,7 @@ public class Runner {
         	// appends choices
         	if (choicesPrefix != null) {
         		try{
-        			//outputs choices for both players
+        			//tries to output choices regardless of player position
         			if(ai1 instanceof UnrestrictedPolicySelectionLearner) {
 	        			outputChoices(choicesPrefix + "_p0.choices", matchNumber, ((UnrestrictedPolicySelectionLearner)ai1).getChoices());
         			}
