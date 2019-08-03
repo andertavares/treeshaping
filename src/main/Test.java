@@ -1,6 +1,5 @@
 package main;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -26,33 +25,32 @@ public class Test {
 		
 		Properties config = Parameters.parseParameters(args); //ConfigManager.loadConfig(configFile);
         
+		// user must specify the full dir, including rep%d/
         String workingDir = config.getProperty("working_dir");
         
 		// retrieves initial and final reps		
-		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
-		int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
+		//int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
+		//int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
 				
 		String testPartnerName = config.getProperty("test_opponent");
 						
 		boolean writeReplay = "true".equals(config.getProperty("save_replay"));
 		logger.info("Will {}save replays (.trace files).", writeReplay ? "" : "NOT ");
 				
-		for (int rep = initialRep; rep <= finalRep; rep++) {
-			// determines the output dir according to the current rep
-			String currentDir = workingDir + "/rep" + rep;
+		// determines the output dir according to the current rep
+		//String currentDir = workingDir + "/rep" + rep;
+		
+		// checks if that repetition has finished (otherwise it is not a good idea to test
+		/*File repFinished = new File(currentDir + "/finished");
+		if(! repFinished.exists()) {
+			logger.warn("Repetition {} has not finished! Skipping...", rep);
+			continue;
+		}*/
+		
+		// runs one repetition
+		// random seed = 0 should make no difference (no greedy actions)  
+		runTestMatches(config, testPartnerName, workingDir, 0, 0, writeReplay);
 			
-			// checks if that repetition has finished (otherwise it is not a good idea to test
-			File repFinished = new File(currentDir + "/finished");
-			if(! repFinished.exists()) {
-				logger.warn("Repetition {} has not finished! Skipping...", rep);
-				continue;
-			}
-			
-			// finally runs one repetition
-			// player 0's random seed increases whereas player 1's decreases with the repetitions  
-			runTestMatches(config, testPartnerName, currentDir, rep, finalRep - rep + 1, writeReplay);
-			
-		}
 	}
 		
 	/**
@@ -120,11 +118,6 @@ public class Test {
         String weightsFile = String.format("%s/weights_%d.bin", workingDir, testPosition);
         logger.info("Loading weights from {}", weightsFile);
 		player.loadWeights(weightsFile);
-		
-		// updates the config with the overwritten parameters
-		config.setProperty("random.seed.p0", Integer.toString(randomSeedP0));
-		config.setProperty("random.seed.p1", Integer.toString(randomSeedP1));
-		config.setProperty("portfolio", portfolioNames); //TODO isn't this handled in Parameters class?
 		
 		logger.info("This experiment's config: ");
 		logger.info(config.toString());
