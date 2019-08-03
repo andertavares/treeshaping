@@ -21,16 +21,17 @@ public class Test {
         
 		String baseDir = config.getProperty("working_dir");
 		
-		// retrieves the number of matches to set into the repConfig below
+		// retrieves some parameters to set into the repConfig below
 		int numMatches = Integer.parseInt(config.getProperty("test_matches"));
-        
+		String saveReplay = config.getProperty("save_replay");
+		
 		// retrieves initial and final reps		
 		int initialRep = Integer.parseInt(config.getProperty("initial_rep", "0"));
 		int finalRep = Integer.parseInt(config.getProperty("final_rep", "0"));
 				
 		String testPartnerName = config.getProperty("test_opponent");
 						
-		boolean writeReplay = "true".equals(config.getProperty("save_replay"));
+		boolean writeReplay = "true".equals(saveReplay);
 		logger.info("Will {}save replays (.trace files).", writeReplay ? "" : "NOT ");
 		
 		
@@ -41,8 +42,9 @@ public class Test {
 			Properties repConfig = ConfigManager.loadConfig(repDir + "/settings.properties");
 			repConfig = Parameters.ensureDefaults(repConfig);
 			
-			// puts the number of test matches into the config
+			// puts the number of test matches and whether to save replays into the config
 			repConfig.setProperty("test_matches", ""+numMatches); //""+ is just to easily convert to string
+			repConfig.setProperty("save_replay", saveReplay);
 			
 			// runs one repetition
 			// random seed = 0 should make no difference (no greedy actions)  
