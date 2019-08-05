@@ -140,8 +140,13 @@ public class Runner {
     			  f.getParentFile().mkdirs();
 			}
     		
+    		// ensures that traceOutput ends with a .zip
+    		if (! traceOutput.endsWith(".zip")) {
+    			traceOutput += ".zip";
+    		}
+    		
     		// writes the zipped trace file (much smaller)
-    		replay.toZip(traceOutput +".zip");
+    		replay.toZip(traceOutput);
     		
 		}
 		
@@ -183,7 +188,7 @@ public class Runner {
     		if(tracePrefix != null){
     			// finds the file name
         		traceOutput = FileNameUtil.nextAvailableFileName(
-    				tracePrefix, "trace"
+    				tracePrefix, "trace.zip"	//trace files are saved as .trace.zip
     			);
     		}
         	
