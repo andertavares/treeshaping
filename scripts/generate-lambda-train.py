@@ -40,12 +40,20 @@ def parse_args():
         default='all'
     )
     
+    parser.add_argument(
+        '--silent', help='Does not log command to the log file', action='store_true',
+    )
+    
     return parser.parse_args()
 
 
 if __name__ == '__main__':
 
     args = parse_args()
+    
+    if not args.silent:
+        # registers the parameters of this call
+        commandlog.log_command(' '.join(sys.argv), 'lambda train')
     
     for mapname in args.maps:
         for lambd in args.lambdas:
