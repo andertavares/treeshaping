@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#Configura a variavel do log - passada por parametro pela execucao do srun
-#RUN_LOG=${1}
-
 if [ "$#" -ne 1 ]; then
 	echo "Please inform the number of jobs to launch"
 	exit
@@ -13,8 +10,8 @@ fi
 
 #Inicia as execucoes
 for i in $(seq 0 $((${1}-1))); do
-	echo "starting $i"
-	sleep 3 && echo "hi $i" &2>1
+	echo "Starting $i"
+	./filejobclient.py jobqueue >> "${PWD}/logs/job$i.txt" &
 done
 wait
 
