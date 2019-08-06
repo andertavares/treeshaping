@@ -68,7 +68,7 @@ if __name__ == '__main__':
     
     for mapname in args.maps:
         for lambd in args.lambdas:
-            command = './test.sh --test_matches %d -i %d -f %d --save_replay true -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d10/a0.01_e0.1_g1.0_l%d' % \
+            command = './test.sh --test_matches %d -i %d -f %d --save_replay true -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d10/a0.01_e0.1_g1.0_l%s' % \
             (args.test_matches, args.initial_rep, args.final_rep, 
             args.basedir, mapname, args.strategies, args.train_matches, lambd)
         
