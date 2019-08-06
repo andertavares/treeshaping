@@ -64,7 +64,7 @@ if __name__ == '__main__':
     
     if not args.silent:
         # registers the parameters of this call
-        commandlog.log_command(vars(args), 'lambda test')
+        commandlog.log_command(' '.join(sys.argv), 'lambda test')
     
     for mapname in args.maps:
         for lambd in args.lambdas:
