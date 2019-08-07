@@ -21,7 +21,7 @@ def parse_args():
         default=[
             'TwoBasesBarracks16x16', 'basesWorkers16x16A', 'basesWorkers24x24A', 
             'basesWorkers32x32A', 'basesWorkers8x8A', 'BWDistantResources32x32', 
-            'DoubleGame24x24', 'NoWhereToRun9x8
+            'DoubleGame24x24', 'NoWhereToRun9x8'
         ]
     )
     
@@ -46,12 +46,17 @@ def run(basedir, maps, strategies, position):
     for m in maps:
         for s in strategies:
             for u in range(0, 4):
-                path = os.path.join(basedir, maps, 's%s-u%d' % (s, u), filename)
+                path = os.path.join(basedir, m, 's%s-u%d' % (s, u), filename)
                 
                 if os.path.exists(path):
                     print('%s,%s,%d,%s' % (
-                        m, s, u, ','.join([str(x) for x in statistics.average_score(path, position)])    
+                        m, s, u, ','.join([str(x) for x in statistics.average_score([path], position)])    
                     ))
                 else:
                     print('%s does not exist' % path)
     
+
+if __name__ == '__main__':
+    args = parse_args()
+    run(args.basedir, args.maps, args.strategies, args.position)
+
