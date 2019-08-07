@@ -8,6 +8,8 @@ import os
 import statistics
 from a3n_vs_a1n_table import generate_table
 
+# TODO: generate the 'average' table as well
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Analyses the results of A3N vs A1N'
