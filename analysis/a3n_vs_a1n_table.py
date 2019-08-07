@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
     parser.add_argument(
         '-m', '--metric', required=False, choices=['wins','draws','losses','matches','score','%score'], 
-        default='wins', 
+        default='score', 
         help='Which metric should appear in the output'
     )
     
