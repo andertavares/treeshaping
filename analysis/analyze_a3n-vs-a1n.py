@@ -41,19 +41,14 @@ def parse_args():
     )
     
     parser.add_argument(
-        '-p', '--position', type=int, default=0, help='A3N player position.',
-        choices=[0, 1]
-    )
-    
-    parser.add_argument(
         '--metric', required=False, choices=['wins','draws','losses','matches','score','%score'], 
-        default='wins', 
+        default='score', 
         help='Which metric should appear in the table output (only works if -q is omitted)'
     )
     
     return parser.parse_args()
     
-def run(basedir, maps, strategies, stdout):
+def raw_analysis(basedir, maps, strategies, stdout):
     
     for player in [0, 1]:
         outfile = os.path.join(basedir, 'A3N_p%d.csv' % player)
@@ -81,13 +76,24 @@ def run(basedir, maps, strategies, stdout):
 if __name__ == '__main__':
     args = parse_args()
 
-    run(args.basedir, args.maps, args.strategies, args.stdout)
+    raw_analysis(args.basedir, args.maps, args.strategies, args.stdout)
     
     if not args.stdout: # also calls a3n-vs-a1n-table.generate_table if -q was omitted
+        out_table_format = os.path.join(args.basedir, 'A3N_p%d_table.csv')
+        
         for player in [0, 1]:
             infile = os.path.join(args.basedir, 'A3N_p%d.csv' % player)
-            outfile = os.path.join(args.basedir, 'A3N_p%d_table.csv' % player)
+            outfile = out_table_format % player
             generate_table(infile, outfile, args.metric)
+            
+        if args.metric != '%score':
+            # adds the two tables into one
+            df1 = pd.read_csv(out_table_format % 0)
+            df2 = pd.read_csv(out_table_format % 1)
+            
+            # replaces columns 2:6 on df1 with the sum of these columns on both dataframes
+            df1.loc[:, 2:6] = df1.iloc[:, 2:6] + df2.iloc[:, 2:6]
+            df1.to_csv(os.path.join(args.basedir, 'A3N_table_sum.csv'))
             
         print('Results are in .csv files at %s' % args.basedir)
 
