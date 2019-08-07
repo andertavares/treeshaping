@@ -20,7 +20,7 @@ def parse_args():
         '-m', '--maps', help='List of maps where the games were played', nargs='+',
         default=[
             'TwoBasesBarracks16x16', 'basesWorkers16x16A', 'basesWorkers24x24A', 
-            'basesWorkers32x32A', 'basesWorkers8x8A', 'BWDistantResources32x32', 
+            'basesWorkers8x8A', 'BWDistantResources32x32', 
             'DoubleGame24x24', 'NoWhereToRun9x8'
         ]
     )
