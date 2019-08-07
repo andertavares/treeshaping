@@ -92,6 +92,7 @@ if __name__ == '__main__':
             df2 = pd.read_csv(out_table_format % 1)
             
             # replaces columns 2:6 on df1 with the sum of these columns on both dataframes
+            # TODO it is generating a first column with unnecessary integer indices
             df1.loc[:, 2:6] = df1.iloc[:, 2:6] + df2.iloc[:, 2:6]
             df1.to_csv(os.path.join(args.basedir, 'A3N_table_sum.csv'))
             
