@@ -79,7 +79,7 @@ if __name__ == '__main__':
     raw_analysis(args.basedir, args.maps, args.strategies, args.stdout)
     
     if not args.stdout: # also calls a3n-vs-a1n-table.generate_table if -q was omitted
-        out_table_format = os.path.join(args.basedir, 'A3N_p%d_table.csv')
+        out_table_format = os.path.join(args.basedir, 'A3N_p%d_' + args.metric + '.csv')
         
         for player in [0, 1]:
             infile = os.path.join(args.basedir, 'A3N_p%d.csv' % player)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
             # replaces columns 2:6 on df1 with the sum of these columns on both dataframes
             # TODO it is generating a first column with unnecessary integer indices
             df1.loc[:, 2:6] = df1.iloc[:, 2:6] + df2.iloc[:, 2:6]
-            df1.to_csv(os.path.join(args.basedir, 'A3N_table_sum.csv'))
+            df1.to_csv(os.path.join(args.basedir, 'A3N_%s_sum.csv' % args.metric))
             
         print('Results are in .csv files at %s' % args.basedir)
 
