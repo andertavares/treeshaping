@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 import statistics
+from a3n_vs_a1n_table import generate_table
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -17,9 +18,9 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-o', '--stdout', action='store_true', 
+        '-q', '--stdout', action='store_true', 
         default=False,
-        help='Output to stdout rather than to a file',
+        help='Quiet: output to stdout rather than to a file',
     )
 
     parser.add_argument(
@@ -40,6 +41,12 @@ def parse_args():
     parser.add_argument(
         '-p', '--position', type=int, default=0, help='A3N player position.',
         choices=[0, 1]
+    )
+    
+    parser.add_argument(
+        '--metric', required=False, choices=['wins','draws','losses','matches','score','%score'], 
+        default='wins', 
+        help='Which metric should appear in the table output (only works if -q is omitted)'
     )
     
     return parser.parse_args()
@@ -70,9 +77,14 @@ def run(basedir, maps, strategies, stdout):
 
 if __name__ == '__main__':
     args = parse_args()
-    print(args)
+
     run(args.basedir, args.maps, args.strategies, args.stdout)
     
-    if not args.stdout:
+    if not args.stdout: # also calls a3n-vs-a1n-table.generate_table if -q was omitted
+        for player in [0, 1]:
+            infile = os.path.join(args.basedir, 'A3N_p%d.csv' % player)
+            outfile = os.path.join(args.basedir, 'A3N_p%d_table.csv' % player)
+            generate_table(infile, outfile, args.metric)
+            
         print('Results are in .csv files at %s' % args.basedir)
 
