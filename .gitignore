@@ -11,3 +11,5 @@
 /manifest.mf
 /jobqueue/
 /logs/
+*.pyc
+
