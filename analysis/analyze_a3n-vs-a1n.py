@@ -67,12 +67,13 @@ def run(basedir, maps, strategies, stdout):
                     
                     if os.path.exists(path):
                         outstream.write('%s,%s,%d,%s\n' % (
-                            m, s, u, ','.join([str(x) for x in statistics.average_score([path], position)])    
+                            m, s, u, ','.join([str(x) for x in statistics.average_score([path], player)])    
                         ))
                     else:
                         print('%s does not exist' % path) # this one always go to stdout
         
-        outstream.close()
+        if not sys.stdout: # prevents closing sys.stdout
+            outstream.close()
     
 
 if __name__ == '__main__':
