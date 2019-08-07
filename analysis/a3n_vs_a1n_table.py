@@ -29,7 +29,6 @@ if __name__ == '__main__':
     parser.add_argument(
         'output', help='The easy-to-visualize .csv output file to generate'
     )
-
     
     parser.add_argument(
         '-m', '--metric', required=False, choices=['wins','draws','losses','matches','score','%score'], 
