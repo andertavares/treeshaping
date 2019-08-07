@@ -2,8 +2,8 @@
 #SBATCH --nodes=4            #Numero de Nós
 #SBATCH --ntasks-per-node=24 #Numero de tarefas por Nó
 #SBATCH --ntasks=96          #Numero total de tarefas MPI
-#SBATCH -p cpu_small         #Fila (partition) a ser utilizada
-#SBATCH -J exemplo_1         #Nome job
+#SBATCH -p cpu         		#Fila (partition) a ser utilizada (lista: https://sdumont.lncc.br/support_manual.php?pg=support#5)
+#SBATCH -J microrts         #Nome job
 #SBATCH --exclusive          #Utilização exclusiva dos nós durante a execução do job
 
 #Exibe os nós alocados para o Job
