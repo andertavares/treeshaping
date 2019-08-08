@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 import os.path
-import sys
 import time
+import argparse
 from pathlib import Path
 import subprocess
 
@@ -21,18 +21,22 @@ class Client(object):
         self.lock_file = os.path.join(basedir, ".lock")
 
         self.attempts = 0
+        self.finished_jobs = 0
 
-    def run(self):
+    def run(self, max_jobs=0):
 
         while True:
+            # if I have finished as many jobs as I want, halt.
+            if 0 < max_jobs <= self.finished_jobs:
+                print('Finished the pre-set number of jobs (%d). Halting.' % max_jobs)
+                return
+
             # if job is currently running, checks if it has finished
             if self.job is not None:
                 if self.job.poll() is not None: # terminated!
-                    print("Job '%s' finished." % self.job_command)
                     self.mark_finished()
-                    self.job = None
-                    self.job_command = None
-                else: # job is running, wait a bit
+
+                else:  # job is running, wait a bit
                     time.sleep(1)
                     continue
 
@@ -51,7 +55,7 @@ class Client(object):
                         print("No job found (attempt #%d). Sleeping for 5 seconds..." % self.attempts)
                         time.sleep(5)
 
-                else: # job found, resets the attempt counter
+                else:  # job found, resets the attempt counter
                     self.attempts = 0
 
     def find_job(self):
@@ -81,11 +85,18 @@ class Client(object):
 
     def mark_finished(self):
 
+        print("Job '%s' finished." % self.job_command)
+
         self.lock()
 
         self.move(self.job_command, self.in_progress, self.done)
 
         self.unlock()
+
+        # updates my statistics
+        self.job = None
+        self.job_command = None
+        self.finished_jobs += 1
 
     # moves a line from file1 to file2
     def move(self, line_to_move, file_name1, file_name2):
@@ -118,7 +129,24 @@ class Client(object):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Simple file-based job client.'
+    )
+
+    parser.add_argument(
+        'basedir',
+        help='Base directory where job list are stored (as a txt file with one command per line)',
+    )
+
+    parser.add_argument(
+        '-m', '--max_jobs', type=int,
+        default=0,
+        help='Maximum number of jobs this client will perform (0=unlimited).',
+    )
+
     print("Starting simple file job client.")
-    client = Client(sys.argv[1])
-    client.run()
+
+    args = parser.parse_args()
+    client = Client(args.basedir)
+    client.run(args.max_jobs)
     print("Goodbye.")
