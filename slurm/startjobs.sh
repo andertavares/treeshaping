@@ -11,7 +11,9 @@ fi
 #Inicia as execucoes
 for i in $(seq 0 $((${1}-1))); do
 	echo "Starting $i"
-	./filejobclient.py jobqueue >> "${PWD}/logs/job$i.txt" &
+	#sleep 3 && echo "hi" >> "logs/job$i.txt" &
+	python3 filejobclient.py jobqueue >> "logs/job$i.txt" &
+	sleep 1 # 1 second interval to prevent race conditions
 done
 wait
 
