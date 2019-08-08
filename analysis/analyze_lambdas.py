@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 import statistics
+#import commandlog
 from a3n_vs_a1n_table import generate_table
 
 def parse_args():
@@ -51,12 +52,7 @@ def parse_args():
         '-m', '--maps', help='List of maps', nargs='+',
         default=['basesWorkers8x8', 'NoWhereToRun9x8', 'TwoBasesBarracks16x16']
     )
-    
-    parser.add_argument(
-        '-s', '--strategies', help='List of strategies (comma-separated list without spaces, or the keyword "all")', 
-        default='all'
-    )
-    
+
     return parser.parse_args()
     
 def raw_analysis(basedir, rep, trainmatches, maps, strategies, lambdas, stdout):
@@ -72,8 +68,8 @@ def raw_analysis(basedir, rep, trainmatches, maps, strategies, lambdas, stdout):
         for m in maps:
             for lam in lambdas:
                 path = os.path.join(
-                    basedir, 'fmaterialdistancehp_s%s_rwinlossdraw' % strategies,
-                    'm%d' % trainmatches, 'd10', 'a0.01_e0.1_l%s' % lam, 
+                    basedir, m, 'fmaterialdistancehp_s%s_rwinlossdraw' % strategies,
+                    'm%d' % trainmatches, 'd10', 'a0.01_e0.1_g1.0_l%s' % lam, 
                     'rep%d' % rep, 'test-vs-A3N_p%d.csv' % player
                 )
                 
@@ -91,10 +87,10 @@ def raw_analysis(basedir, rep, trainmatches, maps, strategies, lambdas, stdout):
 if __name__ == '__main__':
     args = parse_args()
     
-    if not args.silent: # registers the parameters of this call
-        commandlog.log_command(' '.join(sys.argv), 'lambda analysis')
+    #if not args.silent: # registers the parameters of this call
+    #    commandlog.log_command(' '.join(sys.argv), 'lambda analysis')
 
-    raw_analysis(args.basedir, args.maps, args.strategies, args.stdout)
+    raw_analysis(args.basedir, args.rep, args.train_matches, args.maps, args.strategies, args.lambdas, args.stdout)
     
     if not args.stdout: # also calls a3n-vs-a1n-table.generate_table if -q was omitted
         '''out_table_format = os.path.join(args.basedir, 'A3N_p%d_' + args.metric + '.csv')
