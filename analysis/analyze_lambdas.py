@@ -75,7 +75,8 @@ def raw_analysis(basedir, rep, trainmatches, maps, strategies, lambdas, stdout):
                 
                 if os.path.exists(path):
                     outstream.write('%d,%s,%s,materialdistancehp,%s,%d,%s\n' % (
-                        trainmatches, m, lam, strategies, player, ','.join([str(x) for x in statistics.average_score([path], player)])    
+                        trainmatches, m, lam, strategies.replace(',', ' '), player, 
+                        ','.join([str(x) for x in statistics.average_score([path], player)])    
                     ))
                 else:
                     print('%s does not exist' % path) # this one always go to stdout
