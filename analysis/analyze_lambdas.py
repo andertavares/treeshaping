@@ -6,7 +6,7 @@ import argparse
 import sys
 import os
 import statistics
-#import commandlog
+#import commandlog #TODO: solve this
 from a3n_vs_a1n_table import generate_table
 
 def parse_args():
