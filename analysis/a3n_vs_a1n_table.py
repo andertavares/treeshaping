@@ -6,6 +6,15 @@ import argparse
 import os
 
 
+def generate_table(infile, outfile, metric):
+    df = pd.read_csv(infile)
+
+    # builds a hierarchical (multiindex) data frame (kinda groups by map, strategy & units)
+    hierarchical = df.set_index(['map', 'strategy', 'units']) 
+    
+    # displays the results in appropriate format
+    hierarchical.unstack(2)[metric].to_csv(outfile)
+
 
 if __name__ == '__main__':
     
@@ -20,23 +29,18 @@ if __name__ == '__main__':
     parser.add_argument(
         'output', help='The easy-to-visualize .csv output file to generate'
     )
-
     
     parser.add_argument(
         '-m', '--metric', required=False, choices=['wins','draws','losses','matches','score','%score'], 
-        default='wins', 
+        default='score', 
         help='Which metric should appear in the output'
     )
     
     args = parser.parse_args()
-
-    df = pd.read_csv(args.input)
-
-    # builds a hierarchical (multiindex) data frame (kinda groups by map, strategy & units)
-    hierarchical = df.set_index(['map', 'strategy', 'units']) 
     
-    # displays only the 
-    hierarchical.unstack(2)[args.metric].to_csv(args.output)
+    generate_table(args.input, args.output, args.metric)
+
+    
 
 
     
