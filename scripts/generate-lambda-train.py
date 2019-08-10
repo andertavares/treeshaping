@@ -46,6 +46,10 @@ def parse_args():
         '--silent', help='Does not log command to the log file', action='store_true',
     )
     
+    parser.add_argument(
+        '--train-opponent', help='Training opponent', default='selfplay'
+    )
+    
     return parser.parse_args()
 
 
@@ -59,8 +63,8 @@ if __name__ == '__main__':
     
     for mapname in args.maps:
         for lambd in args.lambdas:
-            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval 10 -s %s -e materialdistancehp -r winlossdraw --td_lambda %s --checkpoint 10' % \
-            (mapname, args.basedir, args.train_matches, args.strategies, lambd)
+            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval 10 --train_opponent %s -s %s -e materialdistancehp -r winlossdraw --td_lambda %s --checkpoint 10' % \
+            (mapname, args.basedir, args.train_matches, args.train_opponent, args.strategies, lambd)
 
         
             for rep in range(0, args.repetitions):
