@@ -5,9 +5,6 @@ if [ "$#" -ne 1 ]; then
 	exit
 fi
 
-#Exibe informações sobre o executável
-#/usr/bin/ldd $EXEC
-
 #Inicia as execucoes
 for i in $(seq 0 $((${1}-1))); do
 	echo "Starting $i"
