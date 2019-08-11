@@ -16,13 +16,13 @@ if [ "$#" -eq 3 ]; then
 fi
 
 # creates the log dir (does not throw error if already exists)
-mkdir -p "lambdalogs"
+mkdir -p "$queuedir/logs"
 
 # starts the file job clients
 for i in $(seq ${1} ${2}); do
 	echo "Starting $i"
 	#sleep 3 && echo "hi" >> "logs/job$i.txt" & # use this line to test (toggle comments with this and the one below)
-	python3 filejobclient.py $queuedir >> "lambdalogs/job$i.txt" &
+	python3 filejobclient.py $queuedir >> "$queuedir/logs/job$i.txt" &
 
 	#sleep 1 # 1 second interval to prevent race conditions
 done
