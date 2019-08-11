@@ -46,7 +46,7 @@ echo "Finished generating the job list (`wc -l lambdaqueue/todo.txt` jobs)"
 for i in {1..21}; do 
 	initial=$(( (($i - 1)) * 24 + 1)) 	# (i-1)*24 + 1
 	final=$(( $i * 24 ))				# i*24
-	srun --resv-ports  --nodes 1 --ntasks=1 -c 24 $SCRIPT $initial $final  & 
+	srun --resv-ports  --nodes 1 --ntasks=1 -c 24 $SCRIPT $initial $final lambdaqueue & 
 done
 
 echo "Jobs submitted."
