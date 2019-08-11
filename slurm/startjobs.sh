@@ -1,15 +1,28 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; then
+"
+Starts instances of filejobclient.py in parallel.
+Parameters: initial job number, final job number and job queue directory (optional)
+" 
+
+if [ "$#" -lt 2 ]; then
 	echo "Please inform the initial and final job number."
 	exit
 fi
 
-#Inicia as execucoes
+queuedir="jobqueue"
+if [ "$#" -eq 3 ]; then
+	queuedir=$3
+fi
+
+# creates the log dir (does not throw error if already exists)
+mkdir -p "lambdalogs"
+
+# starts the file job clients
 for i in $(seq ${1} ${2}); do
 	echo "Starting $i"
 	#sleep 3 && echo "hi" >> "logs/job$i.txt" & # use this line to test (toggle comments with this and the one below)
-	python3 filejobclient.py jobqueue >> "logs/job$i.txt" &
+	python3 filejobclient.py $queuedir >> "lambdalogs/job$i.txt" &
 
 	#sleep 1 # 1 second interval to prevent race conditions
 done
