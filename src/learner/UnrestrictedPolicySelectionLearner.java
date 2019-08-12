@@ -430,7 +430,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 */
 	public double tdTarget(GameState nextState, int player, String nextActionName) {
 		double reward, nextQ;
-		reward = rewards.reward(nextState, player);
+		reward = rewards.reward(nextState, player); // the reward of the current action is measured on the reached state (nextState)
 		
 		// terminal states have value of zero
 		if (nextState.gameover() || nextState.getTime() >= matchDuration) {
