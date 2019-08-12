@@ -1,14 +1,13 @@
 package learner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -84,6 +83,9 @@ class TestUnrestrictedPolicySelectionLearner {
 		// td target is r + gamma * q(s', a') -- q(s',a') is 0.35 (as per the previous test)
 		assertEquals(0.1 + 0.9*0.35, learner.tdTarget(state, 0, "action1"));
 		
+		// now let's suppose the reached state is a gameover state
+		state = new GameState(new PhysicalGameState(8, 8), types); //empty 8x8 physical game state is at gameover
+		assertEquals(0.1, learner.tdTarget(state, 0, "action1"));
 	}
 	
 	@Test 
