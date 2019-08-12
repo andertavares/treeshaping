@@ -6,7 +6,7 @@
 #SBATCH -J lambdas         #Nome job
 #SBATCH --exclusive          #Utilização exclusiva dos nós durante a execução do job
 
-#SBATCH --mail-type=END,FAIL,TIME_LIMIT
+#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=andersonrochatavares@gmail.com
 
 #IGNORE_SBATCH --time=00:40:00
