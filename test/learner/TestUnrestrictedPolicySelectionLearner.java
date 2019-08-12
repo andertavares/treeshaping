@@ -1,13 +1,15 @@
 package learner;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,12 +25,14 @@ class TestUnrestrictedPolicySelectionLearner {
 	FeatureExtractor testFeatureExtractor;
 	MockupRewardModel testRewardModel;
 	UnitTypeTable types;
+	double alpha;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		types = new UnitTypeTable(UnitTypeTable.VERSION_ORIGINAL_FINETUNED, UnitTypeTable.MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
 		testFeatureExtractor = new MockupFeatureExtractor(new double[] {1.0, 0.5});
 		testRewardModel = new MockupRewardModel(0.1, 0);
+		alpha = 0.01;
 		
 		learner = new UnrestrictedPolicySelectionLearner(
 			types, 
@@ -38,22 +42,18 @@ class TestUnrestrictedPolicySelectionLearner {
 			Arrays.asList(new String[] {"HP-","CE", "FC", "R"}), 
 			3000, 
 			100, 
-			0.01, 0.1, 0.9, 0.1, 10, 0
+			alpha, 0.1, 0.9, 0.1, 10, 0
 		);
 	}
 	
 	@Test
 	void testQValue() throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
-		// creates the test weights
 		@SuppressWarnings("serial")
 		Map<String, double[]> testWeights = new HashMap<>() {{
 			put("action1", new double[] {0.3, 0.1});
 		}};
 		
-		// opens the visibility of weights, sets them and tests the Q-value
-		Field field = UnrestrictedPolicySelectionLearner.class.getDeclaredField("weights");
-		field.setAccessible(true);
-		field.set(learner, testWeights);
+		setLearnerWeights(testWeights);
 		
 		//feature vector is [1.0, 0.5], weights for 'action1' are: [0.3, 0.1], expected Q-value is: 0.3 + 0.05 = 0.35
 		assertEquals(0.35, learner.qValue(new double[] {1.0, 0.5}, "action1"));
@@ -62,16 +62,11 @@ class TestUnrestrictedPolicySelectionLearner {
 	
 	@Test
 	void testTDTarget() throws Exception {
-		// creates the weights to test for qValue to return inside tdTarget
 		@SuppressWarnings("serial")
 		Map<String, double[]> testWeights = new HashMap<>() {{
 			put("action1", new double[] {0.3, 0.1});
 		}};
-		
-		// opens the visibility of weights, sets them and tests the Q-value
-		Field field = UnrestrictedPolicySelectionLearner.class.getDeclaredField("weights");
-		field.setAccessible(true);
-		field.set(learner, testWeights);
+		setLearnerWeights(testWeights);
 		
 		testRewardModel.setValues(0.1, 1.0);
 		
@@ -87,10 +82,59 @@ class TestUnrestrictedPolicySelectionLearner {
 		state = new GameState(new PhysicalGameState(8, 8), types); //empty 8x8 physical game state is at gameover
 		assertEquals(0.1, learner.tdTarget(state, 0, "action1"));
 	}
-	
+
 	@Test 
-	void testTDLambdaUpdateRule(){
+	void testTDLambdaUpdateRule() throws JDOMException, IOException, Exception{
+		// puts a custom set of weights into the learner
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {0.3, 0.1});
+			put("action2", new double[] {0.7, 0.2});
+		}};
+		setLearnerWeights(testWeights);
 		
+		// creates fake" eligibility traces (all zeros) 
+		@SuppressWarnings("serial")
+		Map<String, double[]> eligibility = new HashMap<>() {{
+			put("action1", new double[] {0, 0});
+			put("action2", new double[] {0, 0});
+		}};
+		
+		GameState previousState = new GameState(
+			PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types), 
+			types
+		); 
+		
+		GameState nextState = previousState.clone();
+		
+		// previousQ should be  1.0*0.3 + 0.5*0.1 = 0.35
+		double previousQ = learner.qValue(new double[] {1.0, 0.5}, "action1");
+		assertEquals(0.35, previousQ);
+		
+		// nextQ should be  1.0*0.4 + 0.5*0.2 = 0.8
+		double nextQ = learner.qValue(new double[] {1.0, 0.5}, "action2");
+		assertEquals(0.8, nextQ, 1E-5);
+		
+		// tdTarget should be r+gamma * nextQ = 0.1 + 0.9*0.8 = 0.82
+		double tdTarget = learner.tdTarget(nextState, 0, "action2");
+		assertEquals(0.82, tdTarget);
+		
+		double tdError =  tdTarget - previousQ; // (0.82-0.35) = 0.47
+		
+		// tests the update without eligibility
+		learner.tdLambdaUpdateRule(previousState, 0, "action1", tdError, testWeights, eligibility);
+		// the above command changes the eligibility traces; the q-value will be changed on the next call:
+		assertArrayEquals(new double[] {0, 0}, eligibility.get("action2"));
+		assertArrayEquals(new double[] {1, 0.5}, eligibility.get("action1"));
+		
+		
+		
+		/*assertEquals(
+			previousQ + alpha*tdError, //0.35 + 0.01*0.47 ==  0.3547
+			learner.qValue(new double[] {1.0, 0.5}, "action1")
+		);*/
+		
+
 	}
 	
 	@Test 
@@ -102,27 +146,37 @@ class TestUnrestrictedPolicySelectionLearner {
 	
 	@Test
 	void testGameOver() {
-		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	void testFromConfig() {
-		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	void testGetActionIntGameState() {
-		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	void testSaveWeights() {
-		fail("Not yet implemented"); // TODO
 	}
 
 	@Test
 	void testLoadWeights() {
-		fail("Not yet implemented"); // TODO
+	}
+	
+	/**
+	 * Sets the weights of our learner object
+	 * @param weights
+	 * @throws NoSuchFieldException
+	 * @throws IllegalAccessException
+	 */
+	private void setLearnerWeights(Map<String, double[]> weights) throws NoSuchFieldException, IllegalAccessException {
+		
+		// opens the visibility of weights, sets them and tests the Q-value
+		Field field = UnrestrictedPolicySelectionLearner.class.getDeclaredField("weights");
+		field.setAccessible(true);
+		field.set(learner, weights);
+		assertEquals(learner.getWeights(), weights);
 	}
 
 }
