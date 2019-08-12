@@ -333,6 +333,10 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * 1) Calculates the TD error: delta = r + gammna * Q(s',a') - Q(s,a) 
 	 * 2) Updates the weight vector: w = w + alpha * delta * e (e is the eligibility vector) 
 	 * 3) Updates the eligibility vector: e = lambda * gamma * e + features
+	 * 
+	 * (originally, the method was private and is public for unit testing;
+	 * this is a code smell: perhaps a new class should be written with this functionality)
+	 * 
 	 * @param state
 	 * @param player
 	 * @param actionName
@@ -341,7 +345,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * @param weights
 	 * @param eligibility
 	 */
-	private void sarsaUpdate(GameState state, int player, String actionName, GameState nextState, String nextActionName, 
+	public void sarsaUpdate(GameState state, int player, String actionName, GameState nextState, String nextActionName, 
 			Map<String, double[]> weights, Map<String, double[]> eligibility) {
 		
 		logger.debug(
@@ -373,7 +377,18 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		 */
 	}
 
-	private void tdLambdaUpdateRule(GameState state, int player, String actionName, double tdError, Map<String, double[]> weights,
+	/**
+	 * Performs the TD(lambda) update rule on the weight vector.
+	 * (originally, the method was private and is public for unit testing;
+	 * this is a code smell: perhaps a new class should be written with this functionality)
+	 * @param state
+	 * @param player
+	 * @param actionName
+	 * @param tdError
+	 * @param weights
+	 * @param eligibility
+	 */
+	public void tdLambdaUpdateRule(GameState state, int player, String actionName, double tdError, Map<String, double[]> weights,
 			Map<String, double[]> eligibility) {
 		
 		double[] f = featureExtractor.extractFeatures(state, player); // feature vector for the state
@@ -405,12 +420,15 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * The temporal-difference target is, by definition, r + gamma * q(s', a'),
 	 * where s' is the reached state and a' is the action to be performed there.
 	 * 
+	 * (originally, the method was private and is public for unit testing;
+	 * this is a code smell: perhaps a new class should be written with this functionality)
+	 * 
 	 * @param nextState
 	 * @param player
 	 * @param nextActionName
 	 * @return
 	 */
-	private double tdTarget(GameState nextState, int player, String nextActionName) {
+	public double tdTarget(GameState nextState, int player, String nextActionName) {
 		double reward, nextQ;
 		reward = rewards.reward(nextState, player);
 		
@@ -498,12 +516,15 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * Returns the Q-value of the unrestricted unit selection policy for the state described by the
 	 * given feature vector
 	 * 
+	 * (originally, the method was private and is public for unit testing;
+	 * this is a code smell: perhaps a new class should be written with this functionality)
+	 * 
 	 * @param features
-	 * @param policyName
+	 * @param actionName
 	 * @return
 	 */
-	private double qValue(double[] features, String policyName) {
-		return dotProduct(features, weights.get(policyName));
+	public double qValue(double[] features, String actionName) {
+		return dotProduct(features, weights.get(actionName));
 	}
 	
 	/**
