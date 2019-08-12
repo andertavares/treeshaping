@@ -2,32 +2,39 @@ package learner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import features.FeatureExtractor;
 import portfolio.PortfolioManager;
-import reward.RewardModelFactory;
+import rts.GameState;
+import rts.PhysicalGameState;
 import rts.units.UnitTypeTable;
 
 class TestUnrestrictedPolicySelectionLearner {
 
 	UnrestrictedPolicySelectionLearner learner;
-	FeatureExtractor testFeatureExtractor = new MockupFeatureExtractor(new double[] {1.0, 0.5});
+	FeatureExtractor testFeatureExtractor;
+	MockupRewardModel testRewardModel;
+	UnitTypeTable types;
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		UnitTypeTable types = new UnitTypeTable(UnitTypeTable.VERSION_ORIGINAL_FINETUNED, UnitTypeTable.MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
+		types = new UnitTypeTable(UnitTypeTable.VERSION_ORIGINAL_FINETUNED, UnitTypeTable.MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
+		testFeatureExtractor = new MockupFeatureExtractor(new double[] {1.0, 0.5});
+		testRewardModel = new MockupRewardModel(0.1, 0);
 		
 		learner = new UnrestrictedPolicySelectionLearner(
 			types, 
 			PortfolioManager.basicPortfolio(types), 
-			RewardModelFactory.getRewardModel("winlossdraw", 3000), 
+			testRewardModel, 
 			testFeatureExtractor, 
 			Arrays.asList(new String[] {"HP-","CE", "FC", "R"}), 
 			3000, 
@@ -55,7 +62,27 @@ class TestUnrestrictedPolicySelectionLearner {
 	}
 	
 	@Test
-	void testTDTarget() {
+	void testTDTarget() throws Exception {
+		// creates the weights to test for qValue to return inside tdTarget
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {0.3, 0.1});
+		}};
+		
+		// opens the visibility of weights, sets them and tests the Q-value
+		Field field = UnrestrictedPolicySelectionLearner.class.getDeclaredField("weights");
+		field.setAccessible(true);
+		field.set(learner, testWeights);
+		
+		testRewardModel.setValues(0.1, 1.0);
+		
+		GameState state = new GameState(
+			PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types), 
+			types
+		); 
+		
+		// td target is r + gamma * q(s', a') -- q(s',a') is 0.35 (as per the previous test)
+		assertEquals(0.1 + 0.9*0.35, learner.tdTarget(state, 0, "action1"));
 		
 	}
 	
