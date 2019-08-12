@@ -1,9 +1,9 @@
 #!/bin/bash
 
-"
-Starts instances of filejobclient.py in parallel.
-Parameters: initial job number, final job number and job queue directory (optional)
-" 
+
+# Starts instances of filejobclient.py in parallel.
+# Parameters: initial job number, final job number and job queue directory (optional)
+
 
 if [ "$#" -lt 2 ]; then
 	echo "Please inform the initial and final job number."

@@ -17,8 +17,6 @@ nodeset -e $SLURM_JOB_NODELIST
 
 cd $SLURM_SUBMIT_DIR
 
-echo $PWD
-
 #Configura o script intermediario
 SCRIPT=${PWD}/slurm/startjobs.sh
 
@@ -29,13 +27,17 @@ module load python/3.7.2
 # creates the queue directory (ignores if already exists)
 mkdir -p lambdaqueue
 
+# resets the old queue (if it exists)
+rm -f lambdaqueue/todo.txt # -f fails silently if the file does not exist
+
 # cria as execucoes
 for s in {all,"HP-,CE,FC,R"}; do 
 	for o in {selfplay,players.A3N}; do 
 		for t in {100,500,1000}; do 
+		
 			# first has a > to override the todo.txt; second has a >> to append the test commands to it
-			./scripts/generate-lambda-train.py results/lambda_train-vs-$o -t $t -r 5 -s $s --train-opponent=$o > lambdaqueue/todo.txt
-			./scripts/generate-lambda-test.py results/lambda_train-vs-$o -t $t -i 0 -f 4 -s $s >> lambdaqueue/todo.txt
+			python3 scripts/generate-lambda-train.py results/lambda_train-vs-$o -t $t -r 5 -s $s --train-opponent=$o >> lambdaqueue/todo.txt
+			python3 scripts/generate-lambda-test.py results/lambda_train-vs-$o -t $t -i 0 -f 4 -s $s >> lambdaqueue/todo.txt
 		done
 	done
 done
