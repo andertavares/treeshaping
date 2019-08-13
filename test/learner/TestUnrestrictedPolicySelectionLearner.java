@@ -25,7 +25,7 @@ class TestUnrestrictedPolicySelectionLearner {
 	FeatureExtractor testFeatureExtractor;
 	MockupRewardModel testRewardModel;
 	UnitTypeTable types;
-	double alpha;
+	double alpha, gamma, lambda;
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -33,6 +33,8 @@ class TestUnrestrictedPolicySelectionLearner {
 		testFeatureExtractor = new MockupFeatureExtractor(new double[] {1.0, 0.5});
 		testRewardModel = new MockupRewardModel(0.1, 0);
 		alpha = 0.01;
+		gamma = 0.9;
+		lambda = 0.1;
 		
 		learner = new UnrestrictedPolicySelectionLearner(
 			types, 
@@ -42,7 +44,7 @@ class TestUnrestrictedPolicySelectionLearner {
 			Arrays.asList(new String[] {"HP-","CE", "FC", "R"}), 
 			3000, 
 			100, 
-			alpha, 0.1, 0.9, 0.1, 10, 0
+			alpha, 0.1, gamma, lambda, 10, 0
 		);
 	}
 	
@@ -123,16 +125,41 @@ class TestUnrestrictedPolicySelectionLearner {
 		
 		// tests the update without eligibility
 		learner.tdLambdaUpdateRule(previousState, 0, "action1", tdError, testWeights, eligibility);
+		
+		// tests if eligibility has changed (increased by the feature vector & decayed by gamma*lambda)
+		assertArrayEquals(
+			new double[] {1*gamma*lambda, 0.5*gamma*lambda}, 
+			eligibility.get("action1")
+		);
+		assertArrayEquals(
+			new double[] {0, 0}, 
+			eligibility.get("action2")
+		);
+		
+		
+		// checks the weight vector (action1)
+		assertArrayEquals(
+			new double[] {0.3 + alpha*tdError, 0.1 + alpha*tdError}, 
+			testWeights.get("action1")
+		);
+		
+		// checks the weight vector (action2)
+		assertArrayEquals(
+			new double[] {0.7 + alpha*tdError, 0.2 + alpha*tdError}, 
+			testWeights.get("action2")
+		);
+		
+		// checks the q value
+		assertEquals(
+			previousQ + alpha*tdError, //0.35 + 0.01*0.47 ==  0.3547
+			learner.qValue(new double[] {1.0, 0.5}, "action1")
+		);
+		
 		// the above command changes the eligibility traces; the q-value will be changed on the next call:
 		assertArrayEquals(new double[] {0, 0}, eligibility.get("action2"));
 		assertArrayEquals(new double[] {1, 0.5}, eligibility.get("action1"));
 		
 		
-		
-		/*assertEquals(
-			previousQ + alpha*tdError, //0.35 + 0.01*0.47 ==  0.3547
-			learner.qValue(new double[] {1.0, 0.5}, "action1")
-		);*/
 		
 
 	}

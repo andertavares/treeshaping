@@ -393,6 +393,13 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		
 		double[] f = featureExtractor.extractFeatures(state, player); // feature vector for the state
 		
+		// incrementes the eligibility of the selected action by adding the feature vector
+		double[] eSelected = eligibility.get(actionName);
+		for (int i = 0; i < eSelected.length; i++) {
+			eSelected[i] += f[i];
+		}
+		
+		// updates the weights of all actions and decays their eligibilities
 		for (String strategyName : weights.keySet()) {
 			
 			double[] w = weights.get(strategyName); // weight vector
@@ -404,16 +411,11 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 			
 			// vector updates 
 			for (int i = 0; i < w.length; i++) {
-				w[i] = w[i] + alpha * tdError * e[i]; // weight vector update
+				w[i] = w[i] + alpha * tdError * e[i]; // weight vector update (w = w+alpha*delta*e)
 				e[i] = e[i] * gamma * lambda; //the eligibility of all actions decays by gamma * lambda
 			}
 		}
 		
-		// incrementes the eligibility of the selected action by adding the feature vector
-		double[] eSelected = eligibility.get(actionName);
-		for (int i = 0; i < eSelected.length; i++) {
-			eSelected[i] += f[i];
-		}
 	}
 
 	/**
