@@ -218,15 +218,15 @@ class TestUnrestrictedPolicySelectionLearner {
 		double tdError =  tdTarget - previousQ; 
 		
 		// tests the update 
-		learner.tdLambdaUpdateRule(previousState, 0, "action1", tdError, testWeights, eligibility);
+		learner.tdLambdaUpdateRule(previousState, 0, "action2", tdError, testWeights, eligibility);
 		
-		// tests if eligibility has changed (increased by the feature vector & decayed by gamma*lambda)
+		// tests if eligibility has changed (decayed for action1)
 		assertArrayEquals(
-			new double[] {1*gamma*lambda, 0.5*gamma*lambda}, 
+			new double[] {0.1*gamma*lambda, 0}, 
 			eligibility.get("action1")
 		);
-		assertArrayEquals(
-			new double[] {0, 0}, 
+		assertArrayEquals( // (increased by the feature vector & decayed by gamma*lambda) for action2
+			new double[] {0, 1 * gamma * lambda}, 
 			eligibility.get("action2")
 		);
 		
