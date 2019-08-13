@@ -137,31 +137,25 @@ class TestUnrestrictedPolicySelectionLearner {
 		);
 		
 		
-		// checks the weight vector (action1)
+		// checks the weight vector for action1 
+		double[] newWeightA1 = new double[] {0.3 + alpha*tdError, 0.1 + alpha*tdError*0.5};
 		assertArrayEquals(
-			new double[] {0.3 + alpha*tdError, 0.1 + alpha*tdError}, 
+			newWeightA1, // update rule: w_i = w_i + alpha*error*e_i
 			testWeights.get("action1")
 		);
 		
-		// checks the weight vector (action2)
+		// checks the weight vector for action2 (expected to be unchanged)
 		assertArrayEquals(
-			new double[] {0.7 + alpha*tdError, 0.2 + alpha*tdError}, 
+			new double[] {0.7, 0.2}, 
 			testWeights.get("action2")
 		);
 		
 		// checks the q value
 		assertEquals(
-			previousQ + alpha*tdError, //0.35 + 0.01*0.47 ==  0.3547
+			newWeightA1[0] * 1.0 + newWeightA1[1]*0.5,
 			learner.qValue(new double[] {1.0, 0.5}, "action1")
 		);
 		
-		// the above command changes the eligibility traces; the q-value will be changed on the next call:
-		assertArrayEquals(new double[] {0, 0}, eligibility.get("action2"));
-		assertArrayEquals(new double[] {1, 0.5}, eligibility.get("action1"));
-		
-		
-		
-
 	}
 	
 	@Test 
