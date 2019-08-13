@@ -22,7 +22,7 @@ import rts.units.UnitTypeTable;
 class TestUnrestrictedPolicySelectionLearner {
 
 	UnrestrictedPolicySelectionLearner learner;
-	FeatureExtractor testFeatureExtractor;
+	MockupFeatureExtractor testFeatureExtractor;
 	MockupRewardModel testRewardModel;
 	UnitTypeTable types;
 	double alpha, gamma, lambda;
@@ -124,6 +124,100 @@ class TestUnrestrictedPolicySelectionLearner {
 		double tdError =  tdTarget - previousQ; // (0.82-0.35) = 0.47
 		
 		// tests the update without eligibility
+		learner.tdLambdaUpdateRule(previousState, 0, "action1", tdError, testWeights, eligibility);
+		
+		// tests if eligibility has changed (increased by the feature vector & decayed by gamma*lambda)
+		assertArrayEquals(
+			new double[] {1*gamma*lambda, 0.5*gamma*lambda}, 
+			eligibility.get("action1")
+		);
+		assertArrayEquals(
+			new double[] {0, 0}, 
+			eligibility.get("action2")
+		);
+		
+		
+		// checks the weight vector for action1 
+		double[] newWeightA1 = new double[] {0.3 + alpha*tdError, 0.1 + alpha*tdError*0.5};
+		assertArrayEquals(
+			newWeightA1, // update rule: w_i = w_i + alpha*error*e_i
+			testWeights.get("action1")
+		);
+		
+		// checks the weight vector for action2 (expected to be unchanged)
+		assertArrayEquals(
+			new double[] {0.7, 0.2}, 
+			testWeights.get("action2")
+		);
+		
+		// checks the q value
+		assertEquals(
+			newWeightA1[0] * 1.0 + newWeightA1[1]*0.5,
+			learner.qValue(new double[] {1.0, 0.5}, "action1")
+		);
+		
+	}
+	
+	@Test 
+	void testTDLambdaUpdateRuleWithEligibility() throws JDOMException, IOException, Exception{
+		/**
+		 * Let's simulate a tabular problem with two states: s0 and s1. 
+		 * Starts with the following condition: agent did action1 in s0, reaching s1. 
+		 * Then it did action2 in s1, reaching s0, receiving reward +10. Then it chose action2. 
+		 * This reward should affect action2 in s0 and action1 in s0 (not action2 in s0 because it 
+		 * was not performed yet)
+		 */
+		
+		// The feature vector is one-hot encoded
+		double[][] features = new double[][] {
+			{1, 0},
+			{0, 1}
+		};
+		
+		// let's puts a custom set of weights into the learner
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {1, 2});
+			put("action2", new double[] {4, -1});
+		}};
+		setLearnerWeights(testWeights);
+		
+		// let's start with these eligibility traces (agent has done action1 in s0) 
+		@SuppressWarnings("serial")
+		Map<String, double[]> eligibility = new HashMap<>() {{
+			put("action1", new double[] {0.1, 0});
+			put("action2", new double[] {0, 0});
+		}};
+		
+		// let's say the new state is as follows
+		testFeatureExtractor.setFeatureVector(features[1]); 
+		
+		GameState previousState = new GameState(
+			PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types), 
+			types
+		); 
+		
+		GameState nextState = previousState.clone();
+		
+		//let's say action2 was taken, 
+		
+		// previousQ(s1,a2) should 0*4 + 1*-1 = -1
+		double previousQ = learner.qValue(features[1], "action2");
+		assertEquals(-1, previousQ);
+		
+		// nextQ(s0,a2) should be  1.0*4 + 0*-1 = 4
+		double nextQ = learner.qValue(features[0], "action2");
+		assertEquals(4, nextQ);
+		
+		// tdTarget should be r+gamma * nextQ 
+		testRewardModel.setValues(10, 0);	// sets the reward
+		testFeatureExtractor.setFeatureVector(features[0]); //sets the next state (s0)
+		double tdTarget = learner.tdTarget(nextState, 0, "action2");
+		assertEquals(10 + gamma*nextQ, tdTarget);
+		
+		double tdError =  tdTarget - previousQ; 
+		
+		// tests the update 
 		learner.tdLambdaUpdateRule(previousState, 0, "action1", tdError, testWeights, eligibility);
 		
 		// tests if eligibility has changed (increased by the feature vector & decayed by gamma*lambda)
