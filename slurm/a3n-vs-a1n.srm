@@ -9,7 +9,7 @@
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=andersonrochatavares@gmail.com
 
-#SBATCH --time=03:00:00
+#SBATCH --time=08:00:00
 
 #Exibe os nós alocados para o Job
 echo $SLURM_JOB_NODELIST
