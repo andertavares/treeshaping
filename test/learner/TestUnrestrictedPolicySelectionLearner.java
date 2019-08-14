@@ -341,7 +341,109 @@ class TestUnrestrictedPolicySelectionLearner {
 	
 	
 	@Test 
-	void testSarsaUpdate() throws NoSuchFieldException, IllegalAccessException {
+	void testSarsaUpdate() throws JDOMException, IOException, Exception {
+		
+		// loads a physical game state that is not a game over
+		PhysicalGameState pgs = PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types);
+		
+		// creates three 'foo' game states that will be mapped to different feature vectors
+		GameState s0 = new GameState(pgs, types);
+		GameState s1 = new GameState(pgs, types);
+		GameState s2 = new GameState(pgs, types); 
+		
+		// encodes the game states with one-hot encoding
+		double[][] features = new double[][] {
+			{1, 0, 0}, 
+			{0, 1, 0},
+			{0, 0, 1}
+		};
+		testFeatureExtractor.putMapping(s0, features[0] );
+		testFeatureExtractor.putMapping(s1, features[1] );
+		testFeatureExtractor.putMapping(s2, features[2] );
+		
+		// creates test weights
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {1, 2, 3});
+			put("action2", new double[] {4, -1, -2});
+		}};
+		setLearnerWeights(testWeights);
+		
+		// creates eligibility traces (as if the agent has just started)
+		@SuppressWarnings("serial")
+		Map<String, double[]> eligibility = new HashMap<>() {{
+			put("action1", new double[] {0, 0, 0});
+			put("action2", new double[] {0, 0, 0});
+		}};
+		
+		// sarsa tuple: s0, action2, +10, s1, action1
+		testRewardModel.setValues(10, 0);
+		learner.sarsaUpdate(s0, 0, "action2", s1, "action1", testWeights, eligibility);
+		
+		// tests eligibility of the two actions (unchanged for a1, changed for a2)
+		assertArrayEquals(
+			new double[] {0, 0, 0},  
+			eligibility.get("action1")
+		);
+		assertArrayEquals(
+			new double[] {1 * gamma*lambda, 0, 0},  
+			eligibility.get("action2")
+		);
+		
+		// tests q-values of the two actions
+		assertArrayEquals(
+			new double[] {1, 2, 3},  //action1 is unchanged
+			new double[] {
+				learner.qValue(features[0], "action1"), 
+				learner.qValue(features[1], "action1"),
+				learner.qValue(features[2], "action1"),
+			}
+		);
+		
+		double q_s0_a2 = 4 + alpha*(10 + gamma*2 - 4); //oldQ + alpha*(r + gamma*q(s1,a1) - oldQ)
+		assertArrayEquals(
+			new double[] {q_s0_a2, -1, -2},  //action2 is changed on s0
+			new double[] {
+				learner.qValue(features[0], "action2"), 
+				learner.qValue(features[1], "action2"),
+				learner.qValue(features[2], "action2"),
+			}
+		);
+		
+		// next sarsa tuple: s1, action1, -100, s2, action2 
+		testRewardModel.setValues(-100, 0);
+		learner.sarsaUpdate(s1, 0, "action1", s2, "action2", testWeights, eligibility);
+		
+		// tests eligibility of the two actions:
+		assertArrayEquals(
+			new double[] {0, gamma*lambda, 0},  
+			eligibility.get("action1")
+		);
+		assertArrayEquals(
+			new double[] {gamma*lambda * gamma*lambda, 0, 0}, //the initial was lambda*gamma and it decays by lambda*gamma 
+			eligibility.get("action2")
+		);
+		
+		// tests q-values of the two actions
+		double tdError = -100 + gamma*-2 - 2;
+		assertArrayEquals( //perhaps break this into 3 assertEquals?
+			new double[] {1, 2 + alpha*(tdError), 3},  //action1 changes on s1 as oldQ + alpha*(r + gamma*q(s1,a1) - oldQ)
+			new double[] {
+				learner.qValue(features[0], "action1"), 
+				learner.qValue(features[1], "action1"),
+				learner.qValue(features[2], "action1"),
+			}
+		);
+		
+		q_s0_a2 = q_s0_a2 + alpha*tdError*gamma*lambda;
+		assertArrayEquals(
+			new double[] {q_s0_a2, -1, -2},  //action2 is changed on s0
+			new double[] {
+				learner.qValue(features[0], "action2"), 
+				learner.qValue(features[1], "action2"),
+				learner.qValue(features[2], "action2"),
+			}
+		);
 		
 	}
 	
@@ -353,10 +455,6 @@ class TestUnrestrictedPolicySelectionLearner {
 
 	@Test
 	void testFromConfig() {
-	}
-
-	@Test
-	void testGetActionIntGameState() {
 	}
 
 	@Test
