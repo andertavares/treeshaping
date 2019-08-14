@@ -484,7 +484,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * @param player
 	 * @return
 	 */
-	private String greedyChoice(GameState state, int player, Map<String, double[]> weights) {
+	public String greedyChoice(GameState state, int player, Map<String, double[]> weights) {
 
 		// the name of the strategy that be active for this state
 		String chosenName = null;

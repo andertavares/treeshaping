@@ -173,7 +173,7 @@ class TestUnrestrictedPolicySelectionLearner {
 			{0, 1}  //s1
 		};
 		
-		// let's puts a custom set of weights into the learner
+		// let's put a custom set of weights into the learner
 		@SuppressWarnings("serial")
 		Map<String, double[]> testWeights = new HashMap<>() {{
 			put("action1", new double[] {1, 2});
@@ -285,8 +285,30 @@ class TestUnrestrictedPolicySelectionLearner {
 		
 	}
 	
+	@Test
+	void testGreedyChoice() throws NoSuchFieldException, IllegalAccessException {
+		// creates two 'foo' game states that will be mapped to different feature vectors
+		GameState s0 = new GameState(new PhysicalGameState(0, 0), types);
+		GameState s1 = new GameState(new PhysicalGameState(0, 0), types);
+		
+		// adds the game states to one-hot feature encoding
+		testFeatureExtractor.putMapping(s0, new double[] {1, 0});
+		testFeatureExtractor.putMapping(s1, new double[] {0, 1});
+		
+		// custom set of weights: prefer action2 in s0 and action1 in s1
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {1, 2});
+			put("action2", new double[] {4, -1});
+		}};
+		setLearnerWeights(testWeights);
+		
+		assertEquals("action2", learner.greedyChoice(s0, 0, testWeights));
+		assertEquals("action1", learner.greedyChoice(s1, 0, testWeights));
+	}
+	
 	@Test 
-	void testSarsaUpdate() {
+	void testSarsaUpdate() throws NoSuchFieldException, IllegalAccessException {
 		
 	}
 	
