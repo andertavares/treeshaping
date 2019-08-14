@@ -20,34 +20,47 @@ cd $SLURM_SUBMIT_DIR
 #Configura o script intermediario
 SCRIPT=${PWD}/slurm/startjobs.sh
 
+QUEUEDIR="lambdaqueue100-500"
+
 # carrega o java 11 e o python3
 module load java/jdk-11
 module load python/3.7.2
 
 # creates the queue directory (ignores if already exists)
-mkdir -p lambdaqueue
+mkdir -p $QUEUEDIR
 
 # resets the old queue (if it exists)
-rm -f lambdaqueue/todo.txt # -f fails silently if the file does not exist
+rm -f $QUEUEDIR/todo.txt # -f fails silently if the file does not exist
 
-# cria as execucoes -- TODO: create all trains prior to all tests
+# creates all train jobs
 for s in {all,"HP-,CE,FC,R"}; do 
 	for o in {selfplay,players.A3N}; do 
-		for t in {100,500,1000}; do 
-		
-			python3 scripts/generate-lambda-train.py results/lambda_train-vs-$o -t $t -r 5 -s $s --train-opponent=$o >> lambdaqueue/todo.txt
-			python3 scripts/generate-lambda-test.py results/lambda_train-vs-$o -t $t -i 0 -f 4 -s $s >> lambdaqueue/todo.txt
+		for t in {100,500}; do 
+			python3 scripts/generate-lambda-train.py results/lambda_train-vs-$o -t $t -r 5 -s $s --train-opponent=$o >> $QUEUEDIR/todo.txt
 		done
 	done
 done
 
-echo "Finished generating the job list (`wc -l lambdaqueue/todo.txt` jobs)"
+# creates all test jobs
+for s in {all,"HP-,CE,FC,R"}; do 
+	for o in {selfplay,players.A3N}; do 
+		for t in {100,500}; do 
+			for r in {0..4}; do
+				python3 scripts/generate-lambda-test.py results/lambda_train-vs-$o -t $t -i $r -f $r -s $s >> $QUEUEDIR/todo.txt
+			done
+		done
+	done
+done
+
+# should be 1200 jobs in total
+
+echo "Finished generating the job list (`wc -l $QUEUEDIR/todo.txt` jobs)"
 
 # runs 21 times the script that launches 24 file job clients each
 for i in {1..21}; do 
 	initial=$(( (($i - 1)) * 24 + 1)) 	# (i-1)*24 + 1
 	final=$(( $i * 24 ))				# i*24
-	srun --resv-ports  --nodes 1 --ntasks=1 -c 24 $SCRIPT $initial $final lambdaqueue & 
+	srun --resv-ports  --nodes 1 --ntasks=1 -c 24 $SCRIPT $initial $final $QUEUEDIR & 
 done
 
 echo "Jobs submitted."
