@@ -162,7 +162,7 @@ class TestUnrestrictedPolicySelectionLearner {
 	void testTDLambdaUpdateRuleWithEligibility() throws JDOMException, IOException, Exception{
 		/**
 		 * Let's simulate a tabular problem with two states: s0 and s1. 
-		 * Starts with the following condition: agent did action1 in s0, reaching s1. 
+		 * We start with the following condition: agent did action1 in s0, reaching s1. 
 		 * Then it did action2 in s1, reaching s0, receiving reward +10. Then it chose action2. 
 		 * This reward should affect action2 in s0 and action1 in s0 (not action2 in s0 because it 
 		 * was not performed yet)
@@ -170,8 +170,8 @@ class TestUnrestrictedPolicySelectionLearner {
 		
 		// The feature vector is one-hot encoded
 		double[][] features = new double[][] {
-			{1, 0},
-			{0, 1}
+			{1, 0}, //s0
+			{0, 1}  //s1
 		};
 		
 		// let's puts a custom set of weights into the learner
@@ -182,10 +182,10 @@ class TestUnrestrictedPolicySelectionLearner {
 		}};
 		setLearnerWeights(testWeights);
 		
-		// let's start with these eligibility traces (agent has done action1 in s0) 
+		// let's start with these eligibility traces (simulating that agent has done action1 in s0) 
 		@SuppressWarnings("serial")
 		Map<String, double[]> eligibility = new HashMap<>() {{
-			put("action1", new double[] {0.1, 0});
+			put("action1", new double[] {lambda*gamma, 0});
 			put("action2", new double[] {0, 0});
 		}};
 		
@@ -217,12 +217,13 @@ class TestUnrestrictedPolicySelectionLearner {
 		
 		double tdError =  tdTarget - previousQ; 
 		
-		// tests the update 
+		// tests the update of action2 in s1
+		testFeatureExtractor.setFeatureVector(features[1]); //sets the state to s1
 		learner.tdLambdaUpdateRule(previousState, 0, "action2", tdError, testWeights, eligibility);
 		
 		// tests if eligibility has changed (decayed for action1)
 		assertArrayEquals(
-			new double[] {0.1*gamma*lambda, 0}, 
+			new double[] {lambda*gamma * gamma*lambda, 0}, //the initial was lambda*gamma and it decays by lambda*gamma 
 			eligibility.get("action1")
 		);
 		assertArrayEquals( // (increased by the feature vector & decayed by gamma*lambda) for action2
