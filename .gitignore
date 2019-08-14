@@ -13,5 +13,5 @@
 /logs/
 *.pyc
 
-/lambdaqueue/
+/lambdaqueue*/
 /a3nqueue/
