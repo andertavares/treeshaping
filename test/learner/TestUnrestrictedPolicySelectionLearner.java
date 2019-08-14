@@ -13,7 +13,6 @@ import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import features.FeatureExtractor;
 import portfolio.PortfolioManager;
 import rts.GameState;
 import rts.PhysicalGameState;
@@ -162,9 +161,9 @@ class TestUnrestrictedPolicySelectionLearner {
 	void testTDLambdaUpdateRuleWithEligibility() throws JDOMException, IOException, Exception{
 		/**
 		 * Let's simulate a tabular problem with two states: s0 and s1. 
-		 * We start with the following condition: agent did action1 in s0, reaching s1. 
+		 * We start with the following condition: agent was in s0, did action1, reached s1. 
 		 * Then it did action2 in s1, reaching s0, receiving reward +10. Then it chose action2. 
-		 * This reward should affect action2 in s0 and action1 in s0 (not action2 in s0 because it 
+		 * This reward should affect action2 in s1 and action1 in s0 (not action2 in s0 because it 
 		 * was not performed yet)
 		 */
 		
@@ -185,6 +184,14 @@ class TestUnrestrictedPolicySelectionLearner {
 		// let's start with these eligibility traces (simulating that agent has done action1 in s0) 
 		@SuppressWarnings("serial")
 		Map<String, double[]> eligibility = new HashMap<>() {{
+			put("action1", new double[] {lambda*gamma, 0});
+			put("action2", new double[] {0, 0});
+		}};
+		
+		// maintains a copy of the e-traces because it will change in the td update 
+		// did a manual re-instantiation with the same values as above 'coz java won't allow a deep copy easily
+		@SuppressWarnings("serial")
+		Map<String, double[]> oldEligibility = new HashMap<>() {{
 			put("action1", new double[] {lambda*gamma, 0});
 			put("action2", new double[] {0, 0});
 		}};
@@ -222,8 +229,9 @@ class TestUnrestrictedPolicySelectionLearner {
 		learner.tdLambdaUpdateRule(previousState, 0, "action2", tdError, testWeights, eligibility);
 		
 		// tests if eligibility has changed (decayed for action1)
+		double[] oldEligAction1 = oldEligibility.get("action1");
 		assertArrayEquals(
-			new double[] {lambda*gamma * gamma*lambda, 0}, //the initial was lambda*gamma and it decays by lambda*gamma 
+			new double[] {oldEligAction1[0] * gamma*lambda, oldEligAction1[1]*gamma*lambda}, //the initial was lambda*gamma and it decays by lambda*gamma 
 			eligibility.get("action1")
 		);
 		assertArrayEquals( // (increased by the feature vector & decayed by gamma*lambda) for action2
@@ -232,23 +240,47 @@ class TestUnrestrictedPolicySelectionLearner {
 		);
 		
 		
-		// checks the weight vector for action1 
-		double[] newWeightA1 = new double[] {0.3 + alpha*tdError, 0.1 + alpha*tdError*0.5};
+		// --- tests the weight vector ---
+		
+		
+		// checks the weight vector for action1 it was w=[1, 2], only the first component will be affected (action1 in s0)
+		// each w_i is updated as: w_i = w_i + alpha*error*e_i, where e_i is the eligibility trace before decay
+		double[] newWeightA1 = new double[] {1 + alpha*tdError*oldEligAction1[0], 2}; //the second component should not change
 		assertArrayEquals(
-			newWeightA1, // update rule: w_i = w_i + alpha*error*e_i
+			newWeightA1, 
 			testWeights.get("action1")
 		);
 		
-		// checks the weight vector for action2 (expected to be unchanged)
+		// checks the weight vector for action2 it was w=[4, -1]; only the second component will be affected (action2 in s1)
+		double[] newWeightA2 = new double[] {4, -1 + alpha*tdError};
 		assertArrayEquals(
-			new double[] {0.7, 0.2}, 
+			newWeightA2, 
 			testWeights.get("action2")
 		);
 		
-		// checks the q value
+		// ---- checks the q-values
+		// q(s0, a1)
 		assertEquals(
-			newWeightA1[0] * 1.0 + newWeightA1[1]*0.5,
-			learner.qValue(new double[] {1.0, 0.5}, "action1")
+			newWeightA1[0] * features[0][0] + newWeightA1[1]*features[0][1],
+			learner.qValue(features[0], "action1")
+		);
+		
+		// q(s1, a1)
+		assertEquals(
+			newWeightA1[0] * features[1][0] + newWeightA1[1]*features[1][1],
+			learner.qValue(features[1], "action1")
+		);
+		
+		// q(s0, a2)
+		assertEquals(
+			newWeightA2[0] * features[0][0] + newWeightA2[1]*features[0][1],
+			learner.qValue(features[0], "action2")
+		);
+		
+		// q(s1, a2)
+		assertEquals(
+			newWeightA2[0] * features[1][0] + newWeightA2[1]*features[1][1],
+			learner.qValue(features[1], "action2")
 		);
 		
 	}
