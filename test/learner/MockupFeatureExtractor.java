@@ -1,12 +1,16 @@
 package learner;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import features.FeatureExtractor;
 import rts.GameState;
 
 public class MockupFeatureExtractor implements FeatureExtractor {
 
+	Map<GameState, double[]> mapping;
+	
 	double[] featureVector;
 	
 	/**
@@ -15,11 +19,25 @@ public class MockupFeatureExtractor implements FeatureExtractor {
 	 * @param numFeatures
 	 */
 	public MockupFeatureExtractor(double[] featureVector) {
+		mapping = new HashMap<>();
+		
 		setFeatureVector(featureVector);
 	}
 	
 	public void setFeatureVector(double[] features) {
 		featureVector = features;
+	}
+	
+	/**
+	 * Adds a pair (state, features). These features will be returned when
+	 * {@link #extractFeatures(GameState, int)} is called with the 
+	 * corresponding state.
+	 * 
+	 * @param state
+	 * @param features
+	 */
+	public void putMapping(GameState state, double[] features) {
+		mapping.put(state, features);
 	}
 	
 	@Override
@@ -32,10 +50,16 @@ public class MockupFeatureExtractor implements FeatureExtractor {
 
 	@Override
 	/**
-	 * A simple method that just returns the previously set feature vector
+	 * A simple method that returns the previously set feature vector for the given state
+	 * (or the default feature vector if no mapping was previously set)
 	 */
 	public double[] extractFeatures(GameState s, int player) {
-		return featureVector;
+		if (mapping.size() == 0) {
+			return featureVector;
+		}
+		
+		return mapping.get(s);
+		
 	}
 
 	@Override
