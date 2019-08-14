@@ -456,7 +456,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	 * @param epsilon 
 	 * @return
 	 */
-    private String epsilonGreedy(GameState state, int player, Map<String, double[]> weights, double epsilon) {
+    public String epsilonGreedy(GameState state, int player, Map<String, double[]> weights, double epsilon) {
     	// the name of the AI that will choose the action for this state
 		String chosenName = null;
 

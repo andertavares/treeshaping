@@ -307,6 +307,39 @@ class TestUnrestrictedPolicySelectionLearner {
 		assertEquals("action1", learner.greedyChoice(s1, 0, testWeights));
 	}
 	
+	@Test
+	void testEpsilonGreedy() throws NoSuchFieldException, IllegalAccessException {
+		// creates a 'foo' game state that will be mapped to different feature vectors
+		GameState s0 = new GameState(new PhysicalGameState(0, 0), types);
+		
+		// adds the game states to one-hot feature encoding
+		testFeatureExtractor.putMapping(s0, new double[] {1, 0});
+		
+		// custom set of weights: prefer action2 in s0
+		@SuppressWarnings("serial")
+		Map<String, double[]> testWeights = new HashMap<>() {{
+			put("action1", new double[] {1, 2});
+			put("action2", new double[] {4, -1});
+		}};
+		setLearnerWeights(testWeights);
+		
+		// counts the number of times that action2 was chosen in a 1M selections:
+		int greedyChoice = 0;
+		for(int i = 0; i < 1000000; i++) {
+			if(learner.epsilonGreedy(s0, 0, testWeights, 0.1).equals("action2")) {
+				greedyChoice++;
+			}
+		}
+		
+		// on the random choice, it is expected that the greedy action is also taken 50% of the times
+		// in total, the greedy action is expected to be taken 90% + (50% * 10%) = 95%
+		
+		//with a tolerance of 200 choices, checks that the greedy action was taken 95% of the time
+		assertEquals(950000.0, greedyChoice, 200); 
+	}
+	
+	
+	
 	@Test 
 	void testSarsaUpdate() throws NoSuchFieldException, IllegalAccessException {
 		
