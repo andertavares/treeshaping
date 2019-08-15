@@ -2,7 +2,6 @@ package learner;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -515,10 +514,6 @@ class TestUnrestrictedPolicySelectionLearner {
 		
 		assertEquals(4 + alpha* tdError * 0.2, learner.qValue(features[0], "action2"));
 		assertEquals(-1, learner.qValue(features[1], "action2"));
-	}
-
-	@Test
-	void testFromConfig() {
 	}
 
 	@Test
