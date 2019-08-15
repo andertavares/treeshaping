@@ -469,56 +469,51 @@ class TestUnrestrictedPolicySelectionLearner {
 		// creates test weights
 		@SuppressWarnings("serial")
 		Map<String, double[]> testWeights = new HashMap<>() {{
-			put("action1", new double[] {1, 2});
+			put("action1", new double[] {0.1, 2});
 			put("action2", new double[] {4, -1});
 		}};
 		setLearnerWeights(testWeights);
 		
-		testRewardModel.setValues(0, 1);
-		//learner.gameOver(0); //testing if the winner has won
+		//let's simulate that the agent took action1 in s0 
+		Field prevStateField = UnrestrictedPolicySelectionLearner.class.getDeclaredField("previousState");
+		prevStateField.setAccessible(true);
+		prevStateField.set(learner, s0);
 		
-		// creates eligibility traces (as if the agent has just started)
-		/*
+		Field actionField = UnrestrictedPolicySelectionLearner.class.getDeclaredField("previousChoiceName");
+		actionField.setAccessible(true);
+		actionField.set(learner, "action1");
+		
+		// let's also simulate that the agent has the following eligibility traces:
 		@SuppressWarnings("serial")
 		Map<String, double[]> eligibility = new HashMap<>() {{
 			put("action1", new double[] {0.03, 0.1});
-			put("action2", new double[] {0.1, 0});
+			put("action2", new double[] {0.2, 0});
 		}};
+		Field eligField = UnrestrictedPolicySelectionLearner.class.getDeclaredField("eligibility");
+		eligField.setAccessible(true);
+		eligField.set(learner, eligibility);
 		
-		// sarsa tuple: s0, action2, +10, s1
-		testRewardModel.setValues(10, 0);
-		learner.sarsaUpdate(s0, 0, "action2", s1, null, testWeights, eligibility);
+		// now let's do an gameOverUpdate as if the player has won, setting the game over reward as 1
+		testRewardModel.setValues(0, 1);
+		learner.gameOver(0); 
 		
-		// tests eligibility of the two actions (unchanged for a1, changed for a2)
+		// tests eligibility of the two actions (increased+decayed for a1, decayed for a2)
 		assertArrayEquals(
-			new double[] {0.03 * gamma*lambda, 0.1 * gamma*lambda},  
+			new double[] {(0.03+1) * gamma*lambda, 0.1 * gamma*lambda},  
 			eligibility.get("action1")
 		);
 		assertArrayEquals(
-			new double[] {1.1 * gamma*lambda, 0, 0},  
+			new double[] {0.2 * gamma*lambda, 0},  
 			eligibility.get("action2")
 		);
 		
-		// tests q-values of the two actions
-		assertArrayEquals(
-			new double[] {1, 2, 3},  //action1 is unchanged
-			new double[] {
-				learner.qValue(features[0], "action1"), 
-				learner.qValue(features[1], "action1"),
-				learner.qValue(features[2], "action1"),
-			}
-		);
+		double tdError = 1 - 0.1; //reward - q(s0,a1)
+		// tests q-values: q = q + alpha * tderror * e )
+		assertEquals(0.1 + alpha * tdError * (0.03+1), learner.qValue(features[0], "action1"));
+		assertEquals(2 + alpha * tdError * 0.1, learner.qValue(features[1], "action1"));
 		
-		double q_s0_a2 = 4 + alpha*(10 + gamma*2 - 4); //oldQ + alpha*(r + gamma*q(s1,a1) - oldQ)
-		assertArrayEquals(
-			new double[] {q_s0_a2, -1, -2},  //action2 is changed on s0
-			new double[] {
-				learner.qValue(features[0], "action2"), 
-				learner.qValue(features[1], "action2"),
-				learner.qValue(features[2], "action2"),
-			}
-		);
-		*/
+		assertEquals(4 + alpha* tdError * 0.2, learner.qValue(features[0], "action2"));
+		assertEquals(-1, learner.qValue(features[1], "action2"));
 	}
 
 	@Test
