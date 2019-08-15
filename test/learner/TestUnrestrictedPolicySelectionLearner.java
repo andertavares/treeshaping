@@ -2,6 +2,7 @@ package learner;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -521,11 +522,27 @@ class TestUnrestrictedPolicySelectionLearner {
 	}
 
 	@Test
-	void testSaveWeights() {
-	}
-
-	@Test
-	void testLoadWeights() {
+	void testLoadAndSaveWeights() throws NoSuchFieldException, IllegalAccessException, IOException {
+		Map<String, double[]> testWeights = new HashMap<>(); 
+		testWeights.put("action1", new double[] {0.1, 2});
+		testWeights.put("action2", new double[] {4, -1});
+		setLearnerWeights(testWeights);
+		
+		learner.saveWeights("testweights.bin");
+		
+		// changes some of the weights and verifies the change
+		testWeights.get("action1")[0] = -1000;
+		assertEquals(-1000, learner.qValue(new double[] {1, 0} , "action1"));
+		
+		// loads the previously saved weights
+		learner.loadWeights("testweights.bin");
+		
+		// checks that the weights have their original values via qValue
+		assertEquals(0.1, learner.qValue(new double[] {1, 0} , "action1"));
+		assertEquals(2, learner.qValue(new double[] {0, 1} , "action1"));
+		assertEquals(4, learner.qValue(new double[] {1, 0} , "action2"));
+		assertEquals(-1, learner.qValue(new double[] {0, 1} , "action2"));
+		
 	}
 	
 	/**
