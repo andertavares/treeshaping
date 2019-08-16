@@ -83,7 +83,7 @@ if __name__ == '__main__':
         
         for player in [0, 1]:
             infile = os.path.join(args.basedir, 'A3N_p%d.csv' % player)
-            outfile = out_table_format % player
+            outfile = out_table_format % player     # FIXME: error when metric is %score
             generate_table(infile, outfile, args.metric)
             
         if args.metric != '%score':
