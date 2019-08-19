@@ -35,8 +35,8 @@ def parse_args():
     )
     
     parser.add_argument(
-        '-s', '--strategies', help='List of strategies (comma-separated list without spaces, or the keyword "all")', 
-        default='all'
+        '-s', '--strategies', help='List of strategies (comma-separated list without spaces)', 
+        default='CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M'
     )
     
     parser.add_argument(
@@ -90,6 +90,8 @@ if __name__ == '__main__':
     
     #if not args.silent: # registers the parameters of this call
     #    commandlog.log_command(' '.join(sys.argv), 'lambda analysis')
+    
+    # TODO customize output dir or prefix
 
     raw_analysis(args.basedir, args.rep, args.train_matches, args.maps, args.strategies, args.lambdas, args.stdout)
     
