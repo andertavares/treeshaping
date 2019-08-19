@@ -13,6 +13,7 @@
 /logs/
 *.pyc
 
+/queue*/
 /lambdaqueue*/
 /a3nqueue/
 /testweights.bin
