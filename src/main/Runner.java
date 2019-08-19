@@ -229,7 +229,7 @@ public class Runner {
         			}
         		}
         		catch(IOException ioe){
-        			logger.error("Error while trying to write summary to '" + summaryOutput + "'", ioe);
+        			logger.error("Error while trying to write choices to '" + summaryOutput + "'", ioe);
         		}
         	}
         	
