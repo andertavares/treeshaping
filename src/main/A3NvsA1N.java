@@ -23,6 +23,7 @@ import rts.GameSettings;
 import rts.GameSettings.LaunchMode;
 import rts.units.UnitTypeTable;
 import utils.CyclesCalculator;
+import utils.StrategyNames;
 
 /**
  * Runs A3N vs A1N in a given map
@@ -76,7 +77,7 @@ public class A3NvsA1N {
     		settings.getUTTVersion(), settings.getConflictPolicy()
     	);
         
-        String strategyName = UnrestrictedPolicySelectionLearner.selectionStrategyNames.get(cmd.getOptionValue("strategy"));
+        String strategyName = StrategyNames.acronymToName(cmd.getOptionValue("strategy"));
         
         logger.info(
         	"Testing A3N with strategy {} ({}) and {} unrestricted units for {} matches.", 
