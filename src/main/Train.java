@@ -53,14 +53,14 @@ public class Train {
         UnitTypeTable types = new UnitTypeTable(settings.getUTTVersion(), settings.getConflictPolicy());
         
         // creates the player instance
-		UnrestrictedPolicySelectionLearner player = UnrestrictedPolicySelectionLearner.fromConfig(
+		UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner (
 			types, randomSeedP0, config
 		);
 		
 		// creates the training opponent
 		AI trainingOpponent = null;
 		if("selfplay".equals(config.getProperty("train_opponent"))) {
-			trainingOpponent = UnrestrictedPolicySelectionLearner.fromConfig(types, randomSeedP1, config);
+			trainingOpponent = new UnrestrictedPolicySelectionLearner(types, randomSeedP1, config);
 		}
 		else {
 			trainingOpponent = AILoader.loadAI(config.getProperty("train_opponent"), types);

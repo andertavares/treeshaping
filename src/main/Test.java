@@ -87,7 +87,7 @@ public class Test {
         
 		logger.info("{} write replay.", writeReplay ? "Will" : "Will not");
 		
-		UnrestrictedPolicySelectionLearner player = UnrestrictedPolicySelectionLearner.fromConfig(
+		UnrestrictedPolicySelectionLearner player = new UnrestrictedPolicySelectionLearner(
     		types, randomSeedP0, config
         );
 		
