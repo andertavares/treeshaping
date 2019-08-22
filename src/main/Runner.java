@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import ai.core.AI;
 import gui.PhysicalGameStateJFrame;
 import gui.PhysicalGameStatePanel;
-import learner.UnrestrictedPolicySelectionLearner;
+import policyselection.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
 import rts.GameState;
 import rts.PartiallyObservableGameState;

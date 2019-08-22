@@ -16,9 +16,9 @@ import org.apache.logging.log4j.Logger;
 import org.jdom.JDOMException;
 
 import ai.core.AI;
-import learner.UnrestrictedPolicySelectionLearner;
 import players.A1N;
 import players.A3N;
+import policyselection.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
 import rts.GameSettings.LaunchMode;
 import rts.units.UnitTypeTable;

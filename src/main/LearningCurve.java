@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import ai.core.AI;
 import config.ConfigManager;
 import config.Parameters;
-import learner.UnrestrictedPolicySelectionLearner;
+import policyselection.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
 import rts.units.UnitTypeTable;
 import utils.AILoader;
