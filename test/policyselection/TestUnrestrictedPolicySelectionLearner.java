@@ -1,4 +1,4 @@
-package learner;
+package policyselection;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
