@@ -17,6 +17,7 @@ import learner.MockupFeatureExtractor;
 import learner.MockupRewardModel;
 import rts.GameState;
 import rts.PhysicalGameState;
+import rts.units.Unit;
 import rts.units.UnitTypeTable;
 import utils.StrategyNames;
 
@@ -290,7 +291,7 @@ class TestLinearSarsaLambda {
 	void testGreedyChoice() throws NoSuchFieldException, IllegalAccessException {
 		// creates two 'foo' game states that will be mapped to different feature vectors
 		GameState s0 = new GameState(new PhysicalGameState(0, 0), types);
-		GameState s1 = new GameState(new PhysicalGameState(0, 0), types);
+		GameState s1 = new GameState(new PhysicalGameState(3, 3), types);
 		
 		// adds the game states to one-hot feature encoding
 		testFeatureExtractor.putMapping(s0, new double[] {1, 0});
@@ -348,9 +349,10 @@ class TestLinearSarsaLambda {
 		PhysicalGameState pgs = PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types);
 		
 		// creates three 'foo' game states that will be mapped to different feature vectors
+		// they are different in the number of units (microRTS does not differentiates states based solely on time)
 		GameState s0 = new GameState(pgs, types);
-		GameState s1 = new GameState(pgs, types);
-		GameState s2 = new GameState(pgs, types); 
+		GameState s1 = s0.clone(); s1.getPhysicalGameState().addUnit(new Unit(0, types.getUnitTypes().get(0), 3, 3)); 
+		GameState s2 = s1.clone(); s2.getPhysicalGameState().addUnit(new Unit(0, types.getUnitTypes().get(0), 5, 5));  
 		
 		// encodes the game states with one-hot encoding
 		double[][] features = new double[][] {
@@ -474,8 +476,8 @@ class TestLinearSarsaLambda {
 			{1, 0}, 
 			{0, 1},
 		};
-		testFeatureExtractor.putMapping(s0, features[0] );
-		testFeatureExtractor.putMapping(s1, features[1] );
+		testFeatureExtractor.putMapping(s0, features[0]);
+		testFeatureExtractor.putMapping(s1, features[1]);
 		
 		// creates test weights
 		@SuppressWarnings("serial")
@@ -497,19 +499,9 @@ class TestLinearSarsaLambda {
 		String actionInS0 = learner.act(s0, 0);
 		assertEquals("action1", actionInS0);
 		
-		//let's simulate that the agent took action1 in s0 
-		/*Field prevStateField = LinearSarsaLambda.class.getDeclaredField("previousState");
-		prevStateField.setAccessible(true);
-		prevStateField.set(learner, s0);
-		
-		Field actionField = LinearSarsaLambda.class.getDeclaredField("previousAction");
-		actionField.setAccessible(true);
-		actionField.set(learner, "action1");
-		*/
-		
-		// now let's do a gameOverUpdate as if the player has won, setting the game over reward as 1
+		// now let's do a gameOverUpdate as if the player has won, setting the game over reward to 1
 		testRewardModel.setValues(0, 1);
-		//learner.gameOver(0); 
+		learner.finish(0); //winner was player 0 (our player under test) 
 		
 		// tests eligibility of the two actions (increased+decayed for a1, decayed for a2)
 		assertArrayEquals(
@@ -521,9 +513,9 @@ class TestLinearSarsaLambda {
 			eligibility.get("action2")
 		);
 		
-		double tdError = 1 - 0.1; //reward - q(s0,a1)
+		double tdError = 1 - 5; //reward - q(s0,a1)
 		// tests q-values: q = q + alpha * tderror * e )
-		assertEquals(0.1 + alpha * tdError * (0.03+1), learner.qValue(features[0], "action1"));
+		assertEquals(5 + alpha * tdError * (0.03+1), learner.qValue(features[0], "action1"));
 		assertEquals(2 + alpha * tdError * 0.1, learner.qValue(features[1], "action1"));
 		
 		assertEquals(4 + alpha* tdError * 0.2, learner.qValue(features[0], "action2"));

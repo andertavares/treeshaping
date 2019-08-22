@@ -45,13 +45,19 @@ public class LinearSarsaLambda implements LearningAgent {
    /**
     * Previous and current action
     */
-	private String previousAction, currentAction;
+	private String previousAction, nextAction;
    
    
    /**
-    * Previous and current state
+    * Previous and current game state
     */
-	private GameState previousState, currentState;
+	private GameState previousState, nextState;
+	
+	/**
+	 * The player ID is part of the state
+	 * TODO encapsulate GameState+playerID into a single State object
+	 */
+	int playerID;
    
    /**
     * The learning rate for weight update
@@ -172,11 +178,13 @@ public class LinearSarsaLambda implements LearningAgent {
      */
     private void initialize() {
     	logger = LogManager.getRootLogger();
-    	currentAction = previousAction = null;
+    	nextAction = previousAction = null;
         previousState = null;
     	
         weights = new HashMap<>();
         eligibility = new HashMap<>();
+        
+        playerID = -1;	//initializes with a 'flag' value so that it is updated in the first call to 'act' 
 
         for (String action : actions) {
 
@@ -194,44 +202,84 @@ public class LinearSarsaLambda implements LearningAgent {
 	@Override
 	public String act(GameState state, int player) {
 		
-		// updates the previous and current states
-        previousState = currentState;
-        currentState = state.clone();
+		// sets my player ID on the first call
+		if(playerID == -1) {
+			playerID = player;
+		}
+		
+		// updates the previous and current states, as well as previous and current actions
+        previousState = nextState;
+        previousAction = nextAction;
+        nextAction = epsilonGreedy(state, player);
+        nextState = state.clone();
+        
         
         // gets the reward for this state
         double reward = rewards.reward(state, player);
         
-        //TODO attempt to detect a game over
+        if(previousState != null && previousAction != null) {
+        	// performs a sarsa update on the current experience tuple
+            sarsaUpdate(previousState, player, previousAction, reward, nextState, nextAction, state.gameover());
+        }
         
-        // performs learning. As a side effect, the previous and current actions are updated
-        learn(previousState, player, previousAction, reward, currentState, false);
-
-        // returns the current action (it was set inside my learn method)
-		return currentAction;
-	}
-
-	@Override
-	public void learn(GameState state, int player, String action, double reward, GameState nextState, boolean done) {
-		
-		sarsaUpdate(state, player, action, reward, nextState, epsilonGreedy(nextState, player), done);
-		
+        // returns the next action 
+		return nextAction;
 	}
 	
-	public void sarsaUpdate(GameState state, int player, String action, double reward, GameState nextState, String nextAction, boolean done) {
-		currentAction = nextAction; //on the next step, I must perform this action (on policy)
+	@Override
+	public void finish(int winner) {
 		
-		// skips learning on the first-ever game state
-    	if (action == null || state == null) {
-    		return; 
-    	}
+		// updates the value of the last taken state-action pair
+		double finalReward = rewards.gameOverReward(playerID, winner);
+		learn(nextState, playerID, nextAction, finalReward, null, true);
+		
+		// resets the variables
+		previousState = nextState = null;
+		previousAction = nextAction = null;
+		
+		//double tdError = finalReward - qValue(previousState, playerID, previousAction);
+		//tdLambdaUpdateRule(previousState, playerID, previousAction, tdError, weights, eligibility);
+	}
+
+
+	
+	
+	@Override
+	/**
+	 * Performs an update with an s,a,r,s' experience tuple. 
+	 * If a' was not already chosen for s', it will be chosen here if s' is not terminal
+	 */
+	public void learn(GameState state, int player, String action, double reward, GameState nextState, boolean done) {
+		
+		if(nextState != null &&  !nextState.equals(this.nextState) && !done) {
+			nextAction = epsilonGreedy(nextState, player);
+			logger.debug("Next action changed to {}", nextAction);
+		}
+		
+		sarsaUpdate(state, player, action, reward, nextState, nextAction, done);
+	}
+	
+	/**
+	 * Applies the Sarsa update rule to an experience tuple: s,a,r,s',a'
+	 * @param state
+	 * @param player
+	 * @param action
+	 * @param reward
+	 * @param nextState
+	 * @param nextAction
+	 * @param done
+	 */
+	public void sarsaUpdate(GameState state, int player, String action, double reward, GameState nextState, String nextAction, boolean done) {
+		this.nextAction = nextAction; //on the next step, I must perform this action (on policy)
 		
 		logger.debug(
 			"Player {}: <s,a,r,s'(gameover?),a',q(s',a')> = <{}, {}, {}, {}({}), {}, {}>",
 			player,
 			state.getTime(), action, 
 			reward, 
-			nextState.getTime(), done, nextAction,
-			qValue(nextState, player, nextAction)
+			nextState == null ? "null" : nextState.getTime(), 
+			done, nextAction,
+			done ? 0 : qValue(nextState, player, nextAction)
 		);
 		
 		//delta = r + gammna * Q(s',a') - Q(s,a)
@@ -260,10 +308,16 @@ public class LinearSarsaLambda implements LearningAgent {
 		// terminal states have value of zero
 		if (done) {
 			nextQ = 0;
+			logger.trace("Reward for terminal state for player {}: {}. ", player, reward
+			);
 		} else {
 			nextQ = qValue(nextState, player, nextActionName);
+			logger.trace(
+				"Reward for time {} for player {}: {}. q(s',a')={}. Done? {}", 
+				nextState.getTime(), player, reward, nextQ, done
+			);
 		}
-		logger.trace("Reward for time {} for player {}: {}. q(s',a')={}. GameOver? {}", nextState.getTime(), player, reward, nextQ, nextState.gameover());
+		
 		return reward + gamma * nextQ;
 	}
 	
