@@ -3,6 +3,7 @@ package learner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import features.FeatureExtractor;
 import rts.GameState;
@@ -32,7 +33,7 @@ public class MockupFeatureExtractor implements FeatureExtractor {
 	 * Adds a pair (state, features). These features will be returned when
 	 * {@link #extractFeatures(GameState, int)} is called with the 
 	 * corresponding state.
-	 * 
+	 * FIXME does not work if state is cloned
 	 * @param state
 	 * @param features
 	 */
@@ -58,7 +59,14 @@ public class MockupFeatureExtractor implements FeatureExtractor {
 			return featureVector;
 		}
 		
-		return mapping.get(s);
+		// attempts to prevent error when state stored in mapping is cloned
+		for(Entry<GameState,double[]> e : mapping.entrySet() ) {
+			if(e.getKey().equals(s)) {
+				return e.getValue();
+			}
+		}
+		
+		return null; //should not get here state not found in mapping
 		
 	}
 
