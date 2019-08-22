@@ -1,4 +1,4 @@
-package learner;
+package learning;
 
 import reward.RewardModel;
 import rts.GameState;

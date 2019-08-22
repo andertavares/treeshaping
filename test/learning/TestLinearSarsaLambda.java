@@ -13,8 +13,6 @@ import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import learner.MockupFeatureExtractor;
-import learner.MockupRewardModel;
 import rts.GameState;
 import rts.PhysicalGameState;
 import rts.units.Unit;
