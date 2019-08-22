@@ -453,6 +453,15 @@ class TestLinearSarsaLambda {
 	
 	@Test
 	void testGameOver() throws Exception {
+		// for this test, we'll use a learner with epsilon = 0, to control which action it would return
+		learner = new LinearSarsaLambda(
+			types, 
+			testRewardModel, 
+			testFeatureExtractor, 
+			StrategyNames.acronymsToNames(Arrays.asList(new String[] {"HP-","CE", "FC", "R"})), 
+			alpha, 0.0, gamma, lambda, 0
+		);
+		
 		// loads a physical game state that is not a game over
 		PhysicalGameState pgs = PhysicalGameState.load("maps/8x8/basesWorkers8x8.xml", types);
 		
@@ -471,31 +480,34 @@ class TestLinearSarsaLambda {
 		// creates test weights
 		@SuppressWarnings("serial")
 		Map<String, double[]> testWeights = new HashMap<>() {{
-			put("action1", new double[] {0.1, 2});
+			put("action1", new double[] {5, 2});
 			put("action2", new double[] {4, -1});
 		}};
 		setLearnerWeights(testWeights);
 		
+		// let's simulate that the agent has the following eligibility traces:
+		@SuppressWarnings("serial")
+		Map<String, double[]> eligibility = new HashMap<>() {{
+			put("action1", new double[] {0.03, 0.1});
+			put("action2", new double[] {0.2, 0});
+		}};
+		setLearnerEligibility(eligibility);
+		
+		//agent should take action1 in s0
+		String actionInS0 = learner.act(s0, 0);
+		assertEquals("action1", actionInS0);
+		
 		//let's simulate that the agent took action1 in s0 
-		Field prevStateField = LinearSarsaLambda.class.getDeclaredField("previousState");
+		/*Field prevStateField = LinearSarsaLambda.class.getDeclaredField("previousState");
 		prevStateField.setAccessible(true);
 		prevStateField.set(learner, s0);
 		
 		Field actionField = LinearSarsaLambda.class.getDeclaredField("previousAction");
 		actionField.setAccessible(true);
 		actionField.set(learner, "action1");
+		*/
 		
-		// let's also simulate that the agent has the following eligibility traces:
-		@SuppressWarnings("serial")
-		Map<String, double[]> eligibility = new HashMap<>() {{
-			put("action1", new double[] {0.03, 0.1});
-			put("action2", new double[] {0.2, 0});
-		}};
-		Field eligField = LinearSarsaLambda.class.getDeclaredField("eligibility");
-		eligField.setAccessible(true);
-		eligField.set(learner, eligibility);
-		
-		// now let's do an gameOverUpdate as if the player has won, setting the game over reward as 1
+		// now let's do a gameOverUpdate as if the player has won, setting the game over reward as 1
 		testRewardModel.setValues(0, 1);
 		//learner.gameOver(0); 
 		
