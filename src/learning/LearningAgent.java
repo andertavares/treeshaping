@@ -27,6 +27,13 @@ public interface LearningAgent {
 	public void learn(GameState state, int player, String action, double reward, GameState nextState, boolean done);
 	
 	/**
+	 * Called at the end of an episode so that the agent 
+	 * can update the value of an action taken prior to the terminal state
+	 * @param winner
+	 */
+	public void finish(int winner);
+	
+	/**
 	 * Returns the value for a state-action pair
 	 * @param state
 	 * @param player
