@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import features.FeatureExtractor;
@@ -98,7 +99,6 @@ public class LinearSarsaLambda implements LearningAgent {
  	   
     	int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
  		
-        // loads the reward model (default=winlossdraw)
         rewards = RewardModelFactory.getRewardModel(
  		   config.getProperty("rewards", "winlossdraw"), maxCycles
         );
@@ -117,9 +117,6 @@ public class LinearSarsaLambda implements LearningAgent {
  		lambda = Double.parseDouble(config.getProperty("td.lambda"));
  		
  		random = new Random(Integer.parseInt(config.getProperty("random_seed")));
- 		
- 		 currentAction = previousAction = null;
-         previousState = null;
  		
  		initialize();
 	}
@@ -140,9 +137,44 @@ public class LinearSarsaLambda implements LearningAgent {
 	}
     
     /**
-     * Initialize weights and eligibility traces
+     * Creates a LinearSarsaLambda by explicitly specifying all parameters
+     * @param types
+     * @param rewardModel
+     * @param featureExtractor
+     * @param actions
+     * @param alpha
+     * @param epsilon
+     * @param gamma
+     * @param lambda
+     * @param randomSeed
+     */
+    public LinearSarsaLambda(UnitTypeTable types, RewardModel rewardModel,
+			FeatureExtractor featureExtractor, List<String> actions, double alpha, double epsilon, 
+			double gamma, double lambda, int randomSeed) {
+    	
+    	this.rewards = rewardModel;
+        this.featureExtractor = featureExtractor;
+        this.actions = actions; 
+        this.alpha = alpha; 
+        this.epsilon = epsilon;
+        this.gamma = gamma; 
+        this.lambda = lambda;
+ 		
+ 		random = new Random(randomSeed);
+ 		
+ 		initialize();
+    	
+	}
+
+	/**
+     * Initializes internal variables (logger, weights, eligibility traces as well as
+     * current and previous state and action)
      */
     private void initialize() {
+    	logger = LogManager.getRootLogger();
+    	currentAction = previousAction = null;
+        previousState = null;
+    	
         weights = new HashMap<>();
         eligibility = new HashMap<>();
 
@@ -169,6 +201,8 @@ public class LinearSarsaLambda implements LearningAgent {
         // gets the reward for this state
         double reward = rewards.reward(state, player);
         
+        //TODO attempt to detect a game over
+        
         // performs learning. As a side effect, the previous and current actions are updated
         learn(previousState, player, previousAction, reward, currentState, false);
 
@@ -179,11 +213,15 @@ public class LinearSarsaLambda implements LearningAgent {
 	@Override
 	public void learn(GameState state, int player, String action, double reward, GameState nextState, boolean done) {
 		
-		// selects the next action
-		currentAction = epsilonGreedy(state, player);
+		sarsaUpdate(state, player, action, reward, nextState, epsilonGreedy(nextState, player), done);
+		
+	}
+	
+	public void sarsaUpdate(GameState state, int player, String action, double reward, GameState nextState, String nextAction, boolean done) {
+		currentAction = nextAction; //on the next step, I must perform this action (on policy)
 		
 		// skips learning on the first-ever game state
-    	if (action == null || nextState == null) {
+    	if (action == null || state == null) {
     		return; 
     	}
 		
@@ -191,16 +229,15 @@ public class LinearSarsaLambda implements LearningAgent {
 			"Player {}: <s,a,r,s'(gameover?),a',q(s',a')> = <{}, {}, {}, {}({}), {}, {}>",
 			player,
 			state.getTime(), action, 
-			rewards.reward(nextState, player), 
-			nextState.getTime(), nextState.gameover(), currentAction,
-			qValue(nextState, player, currentAction)
+			reward, 
+			nextState.getTime(), done, nextAction,
+			qValue(nextState, player, nextAction)
 		);
 		
 		//delta = r + gammna * Q(s',a') - Q(s,a)
-		double tdError = tdTarget(nextState, player, currentAction, done) - qValue(state, player, previousAction);
+		double tdError = tdTarget(reward, nextState, player, nextAction, done) - qValue(state, player, action);
 
-		tdLambdaUpdateRule(state, player, previousAction, tdError);
-
+		tdLambdaUpdateRule(state, player, action, tdError);
 	}
 	
 	/**
@@ -210,15 +247,15 @@ public class LinearSarsaLambda implements LearningAgent {
 	 * (originally, the method was private and is public for unit testing;
 	 * this is a code smell: perhaps a new class should be written with this functionality)
 	 * 
+	 * @param reward
 	 * @param nextState
 	 * @param player
 	 * @param nextActionName
 	 * @param done whether the nextState is terminal
 	 * @return
 	 */
-	public double tdTarget(GameState nextState, int player, String nextActionName, boolean done) {
-		double reward, nextQ;
-		reward = rewards.reward(nextState, player); // the reward of the current action is measured on the reached state (nextState)
+	public double tdTarget(double reward, GameState nextState, int player, String nextActionName, boolean done) {
+		double nextQ;
 		
 		// terminal states have value of zero
 		if (done) {
