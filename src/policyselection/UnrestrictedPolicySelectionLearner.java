@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import ai.core.AI;
 import ai.core.ParameterSpecification;
 import learning.LearningAgent;
+import learning.LearningAgentFactory;
 import learning.LinearSarsaLambda;
 import players.A3N;
 import rts.GameState;
@@ -100,7 +101,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
    public UnrestrictedPolicySelectionLearner(UnitTypeTable types, int randomSeed, Properties config) {
 	   this(
 		   types, 
-		   new LinearSarsaLambda(types, config, randomSeed), //TODO allow the retrieval of other learning agents
+		   LearningAgentFactory.getLearningAgent(config.getProperty("learner"), types, config, randomSeed),
 		   Integer.parseInt(config.getProperty("max_cycles")),
 		   Integer.parseInt(config.getProperty("search.timebudget")),
 		   Integer.parseInt(config.getProperty("decision_interval"))

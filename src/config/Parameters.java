@@ -75,7 +75,8 @@ public class Parameters {
         options.addOption(new Option("r", "rewards", true, "The reward model:  winloss-tiebreak, winlossdraw or victory-only"));
         options.addOption(new Option("e", "features", true, "The feature model:  material, distance, materialdistancehp or mapaware"));
         options.addOption(new Option("o", "test_opponent", true, "Full name of the AI to test against (overrides the one specified in file)."));
-        options.addOption(new Option("a", "activation", true, "Activation function for the value function approximator (default: identity)"));
+        //options.addOption(new Option("a", "activation", true, "Activation function for the value function approximator (default: identity)"));
+        options.addOption(new Option("l", "learner", true, "Learning algorithm"));
         options.addOption(new Option("s", "strategies", true, "Strategies to consider for selecting the unrestricted unit"));
         options.addOption(new Option("g", "gui", false, "Activate GUI to visualize matches (if omitted, no GUI)."));
         options.addOption(new Option(null, "train_matches", true, "Number of training matches."));
@@ -108,7 +109,7 @@ public class Parameters {
 		List<String> overrideList = Arrays.asList(
 				"working_dir", "initial_rep", "final_rep", "train_opponent", "test_opponent", 
 				"test_matches", "rewards", "features", "train_matches", "strategies",
-				"save_replay", 
+				"save_replay", "learner",
 				//"test_position", 
 				"decision_interval", "restart", "checkpoint"
 		);
@@ -228,6 +229,8 @@ public class Parameters {
 			//put("test_position", "0");
 			
 			put("search.timebudget", "100" );
+			
+			put("learner", "sarsa");
 			put("td.alpha.initial",  "0.01");
 			put("td.lambda",  "0.1");
 			
