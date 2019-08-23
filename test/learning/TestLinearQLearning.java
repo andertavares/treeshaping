@@ -161,7 +161,7 @@ class TestLinearQLearning {
 		}};
 		setLearnerWeights(testWeights);
 		
-		// sarsa tuple: s0, action2, +10, s1
+		// sars tuple: s0, action2, +10, s1
 		testRewardModel.setValues(10, 0);
 		learner.learn(s0, 0, "action2", 10, s1, false);
 		
@@ -209,7 +209,6 @@ class TestLinearQLearning {
 				learner.qValue(features[2], "action2"),
 			}
 		);
-		
 	}
 	
 	@Test
