@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.jdom.JDOMException;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,24 @@ class TestLinearSarsaLambda {
 			StrategyNames.acronymsToNames(Arrays.asList(new String[] {"HP-","CE", "FC", "R"})), 
 			alpha, 0.1, gamma, lambda, 0
 		);
+	}
+	
+	@Test
+	/**
+	 * LinearSarsaLambda raised an exception when instantiated from config without random seed
+	 */
+	void testCreationFromConfigWithoutRandomSeed() {
+		Properties config = new Properties();
+		config.put("max_cycles", "200");
+		config.put("rewards", "winlossdraw");
+		config.put("features", "materialdistancehp");
+		config.put("strategies", "HP-,CE,FC,R"); 
+		config.put("td.alpha.initial", "0.15");
+		config.put("td.epsilon.initial", "0.1");
+		config.put("td.gamma", "0.99");
+		config.put("td.lambda", "0.15");
+		learner = new LinearSarsaLambda(types, config);
+		// if code reaches here without throwing an exception, we're good to go
 	}
 	
 	@Test

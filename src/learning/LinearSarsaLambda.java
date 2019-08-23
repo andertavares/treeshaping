@@ -97,7 +97,8 @@ public class LinearSarsaLambda implements LearningAgent {
     protected Logger logger;
     
     /**
-     * Creates a LinearSarsaLambda agent with all parameters specified via config file
+     * Creates a LinearSarsaLambda agent with all parameters specified via config file.
+     * Random seed defaults to 0 if not specified in config.
      * @param types
      * @param config
      */
@@ -106,11 +107,11 @@ public class LinearSarsaLambda implements LearningAgent {
     	int maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
  		
         rewards = RewardModelFactory.getRewardModel(
- 		   config.getProperty("rewards", "winlossdraw"), maxCycles
+ 		   config.getProperty("rewards"), maxCycles
         );
         
         featureExtractor = FeatureExtractorFactory.getFeatureExtractor(
- 		   config.getProperty("features", "materialdistancehp"), types, maxCycles
+ 		   config.getProperty("features"), types, maxCycles
  	    );
         
         actions = StrategyNames.acronymsToNames(Arrays.asList(
@@ -122,7 +123,7 @@ public class LinearSarsaLambda implements LearningAgent {
         gamma = Double.parseDouble(config.getProperty("td.gamma")); 
  		lambda = Double.parseDouble(config.getProperty("td.lambda"));
  		
- 		random = new Random(Integer.parseInt(config.getProperty("random_seed")));
+ 		random = new Random(Integer.parseInt(config.getProperty("random_seed", "0")));
  		
  		initialize();
 	}
