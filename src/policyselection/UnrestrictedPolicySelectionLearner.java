@@ -71,51 +71,40 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 
    /**
     * Creates an agent that attempts to learn the unrestricted unit selection policy
-    * TODO get rid of portfolio?
     * @param types
-    * @param portfolio
-    * @param selectionStrategyAcronyms
+    * @param selectionStrategies
     * @param matchDuration
     * @param timeBudget
     * @param randomSeed
-    *
+    */
    public UnrestrictedPolicySelectionLearner(
-		   UnitTypeTable types, Map<String,AI> portfolio, RewardModel rewards, 
-		   FeatureExtractor featureExtractor, List<String> selectionStrategyAcronyms, 
-		   int matchDuration, int timeBudget, int decisionInterval, int randomSeed) 
+		   UnitTypeTable types,  LearningAgent learner,  
+		   int maxCycles, int timeBudget, int decisionInterval) 
     {
+	   	this.learner = learner;
+	   	this.maxCycles = maxCycles;
         this.timeBudget = timeBudget;
         this.decisionInterval = decisionInterval;
 
-        random = new Random(randomSeed);
-        
-        choices = new ArrayList<>();
-
-        // uses logistic with log loss by default
-        //activation = new LogisticLogLoss();
-		
-    	logger = LogManager.getRootLogger();
-		
-        //instantiates the A3N planner
         planner = new A3N(types);
-        
-    }*/
+        choices = new ArrayList<>();
+    	logger = LogManager.getRootLogger();
+    }
    
+   /**
+    * Instantiates a policy selector with parameters from a config object
+    * @param types
+    * @param randomSeed
+    * @param config
+    */
    public UnrestrictedPolicySelectionLearner(UnitTypeTable types, int randomSeed, Properties config) {
-	   
-	   maxCycles = Integer.parseInt(config.getProperty("max_cycles"));
-	   timeBudget = Integer.parseInt(config.getProperty("search.timebudget"));
-	   decisionInterval = Integer.parseInt(config.getProperty("decision_interval"));
-	   learner = new LinearSarsaLambda(types, config, randomSeed);
-	   choices = new ArrayList<>();
-
-   	   logger = LogManager.getRootLogger();
-		
-       //instantiates the A3N planner
-       planner = new A3N(types);
-	   
-	   currentChoiceName = null;
-	   
+	   this(
+		   types, 
+		   new LinearSarsaLambda(types, config, randomSeed), //TODO allow the retrieval of other learning agents
+		   Integer.parseInt(config.getProperty("max_cycles")),
+		   Integer.parseInt(config.getProperty("search.timebudget")),
+		   Integer.parseInt(config.getProperty("decision_interval"))
+	   );
    }
     
    /**
@@ -166,13 +155,9 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		 *  if learning from actual experience, the agent never is called to act
 		 *  in a terminal state and therefore, never sees the final reward, 
 		 *  which is the most important
-		 *
+		 */
 		logger.debug("gameOver. winner={}, playerID={}", winner, playerID);
-		double tdError = rewards.gameOverReward(playerID, winner) - qValue(previousState, playerID, previousChoiceName);
-		
-		tdLambdaUpdateRule(previousState, playerID, previousChoiceName, tdError, weights, eligibility);
-		*/
-		
+		learner.finish(winner);
 	}
 
 	@Override
