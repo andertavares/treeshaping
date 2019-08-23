@@ -341,10 +341,10 @@ public class LinearSarsaLambda implements LearningAgent {
 		}
 		
 		// updates the weights of all actions and decays their eligibilities
-		for (String strategyName : weights.keySet()) {
+		for (String actionName : weights.keySet()) {
 			
-			double[] w = weights.get(strategyName); // weight vector
-			double[] e = eligibility.get(strategyName); // eligibility vector 
+			double[] w = weights.get(actionName); // weight vector
+			double[] e = eligibility.get(actionName); // eligibility vector 
 			
 			// certifies that things are ok
 			assert w.length == e.length;
@@ -411,9 +411,7 @@ public class LinearSarsaLambda implements LearningAgent {
 	}
 	
 	/**
-	 * Returns the name of the unrestricted unit selection policy that would be 
-	 * active in this state using epsilon greedy
-	 * (a random action name with probability epsilon, and the greedy w.r.t the Q-value
+	 * Returns a random action name with probability epsilon, and the greedy w.r.t the Q-value
 	 * with probability (1-epsilon)
 	 * 
 	 * @param state
@@ -476,11 +474,7 @@ public class LinearSarsaLambda implements LearningAgent {
 	}
 
 	/**
-	 * Returns the Q-value of the unrestricted unit selection policy for the state described by the
-	 * given feature vector
-	 * 
-	 * (originally, the method was private and is public for unit testing;
-	 * this is a code smell: perhaps a new class should be written with this functionality)
+	 * Returns the Q-value of a given state-action pair
 	 * 
 	 * @param features
 	 * @param actionName
