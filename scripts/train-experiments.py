@@ -108,15 +108,15 @@ def generate_commands(params, silent=False):
                                   'strategies', 'train_opponents']
     ]
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
-            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
-                      '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
-                      '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
-                      '--checkpoint 10' % \
-                      (mapname, params['basedir'], params['train_matches'], interval,
-                       train_opp, strats, alpha, gamma, epsilon, lamda)
+        command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
+                  '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
+                  '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
+                  '--checkpoint 10' % \
+                  (mapname, params['basedir'], params['train_matches'], interval,
+                   train_opp, strats, alpha, gamma, epsilon, lamda)
 
-            for rep in range(params['initial_rep'], params['final_rep']+1):
-                outstream.write('%s\n' % command)
+        for rep in range(params['initial_rep'], params['final_rep']+1):
+            outstream.write('%s\n' % command)
 
     if params['output'] is not None:
         outstream.close()
