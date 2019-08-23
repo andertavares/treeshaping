@@ -18,6 +18,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+//TODO add support to td_gamma
 public class Parameters {
 	
 	public static Properties parseParameters(String[] args) throws IOException {
