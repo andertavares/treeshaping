@@ -81,6 +81,8 @@ public class Parameters {
         options.addOption(new Option(null, "train_matches", true, "Number of training matches."));
         options.addOption(new Option(null, "search_timebudget", true, "Milisseconds of planning time."));
         options.addOption(new Option(null, "td_alpha_initial", true, "Initial learning rate (held constant throughout experiment by now)"));
+        options.addOption(new Option(null, "td_epsilon_initial", true, "Initial exploration rate (held constant throughout experiment by now)"));
+        options.addOption(new Option(null, "td_gamma", true, "Discount factor"));
         options.addOption(new Option(null, "td_lambda", true, "Eligibility trace parameter"));
         options.addOption(new Option(null, "decision_interval", true, "Number of frames to decision_interval a selection (this will be the interval between decision points)."));
 		options.addOption(new Option(null, "save_replay", true, "(true or false) Generate replay (trace) files ."));
@@ -126,7 +128,8 @@ public class Parameters {
 		
 		//parameters whose _ must be replaced by .
 		List<String> underscoreToDot = Arrays.asList(
-				"td_alpha_initial", "td_lambda", "search_timebudget"
+				"td_alpha_initial", "td_epsilon_initial", "td_gamma",
+				"td_lambda", "search_timebudget" 
 		);
 		for(String paramName : underscoreToDot) {
 			if(cmd.hasOption(paramName)) {
