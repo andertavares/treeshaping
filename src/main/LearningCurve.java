@@ -60,6 +60,7 @@ public class LearningCurve extends Test {
 			// puts the number of test matches and whether to save replays into the config
 			repConfig.setProperty("test_matches", ""+numMatches); //""+ is just to easily convert to string
 			repConfig.setProperty("save_replay", saveReplay);
+			repConfig.setProperty("checkpoint", config.getProperty("checkpoint"));
 			
 			// runs one repetition
 			// random seed = 0 should make no difference (no greedy actions)  
@@ -148,7 +149,7 @@ public class LearningCurve extends Test {
     		
     		Runner.repeatedMatches(
     			types, workingDir,
-    			testMatches, // differently from Test class, runs all rather than half matches in each position
+    			testMatches / 2, // runs half the matches in each position
     			String.format("%s/lcurve-vs-%s_p%d_m%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint), //summary output
     			null, //choices prefix //String.format("%s/lcurve-vs-%s_p%d_m%d", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint)
     			p0, p1, visualizeTest, settings, tracePrefix, 
