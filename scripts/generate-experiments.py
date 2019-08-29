@@ -24,11 +24,16 @@ def train_args(description='Generates commands to run experiments'):
         '--test-matches', type=int, default=40,
         help='Number of test matches'
     )
-
-    '''parser.add_argument(
-        '-r', '--repetitions', required=True, type=int,
-        help='Number of repetitions'
-    )'''
+    
+    parser.add_argument(
+        '--lcurve-matches', type=int, default=20,
+        help='Number of learning curve matches'
+    )
+    
+    parser.add_argument(
+        '-c', '--checkpoint', type=int, default=10,
+        help='Save weights every "checkpoint" matches'
+    )
 
     parser.add_argument(
         '-i', '--initial-rep', required=True, type=int,
@@ -134,9 +139,9 @@ def generate_commands(params, silent=False):
             command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
                       '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
                       '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
-                      '--checkpoint 10' % \
+                      '--checkpoint %d' % \
                       (mapname, params['basedir'], params['train_matches'], interval,
-                       train_opp, strats, alpha, gamma, epsilon, lamda)
+                       train_opp, strats, alpha, gamma, epsilon, lamda, params['checkpoint'])
     
             for rep in range(params['initial_rep'], params['final_rep']+1):
                 outstream.write('%s\n' % command)
@@ -151,6 +156,18 @@ def generate_commands(params, silent=False):
     
             for rep in range(params['initial_rep'], params['final_rep']+1):
                 outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
+                
+    # writes learning curve jobs
+    if not params['no_lcurve']:
+        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
+            for c in range(params['checkpoint'], params['train_matches']+1, params['checkpoint']):  # +1 in second argument to ensure the last checkpoint is also picked 
+                    command = './learningcurve.sh -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
+                      '--test_matches %d --checkpoint %d ' % \
+                      (params['basedir'], mapname, strats, params['train_matches'], interval,
+                       alpha, epsilon, gamma, lamda, params['lcurve_matches'], c)
+                       
+                    for rep in range(params['initial_rep'], params['final_rep']+1):
+                        outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
             
     if params['output'] is not None:
         outstream.close()
