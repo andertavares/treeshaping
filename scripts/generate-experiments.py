@@ -6,7 +6,7 @@ import sys
 import commandlog
 
 
-def train_args(description='Generates commands to run experiments'):
+def train_args(description='Generates commands to run experiments: train, learning curve and test (in this order)'):
     parser = argparse.ArgumentParser(
         description=description
     )
@@ -120,6 +120,60 @@ def train_args(description='Generates commands to run experiments'):
 
     return parser
 
+def cartesian_product(params_dict):
+    '''
+    Returns a generator for the cartesian product of 
+    parameters that have lists of values
+    '''
+    
+    params_list = [
+        params_dict[attr] for attr in ['maps', 'decision_intervals', 'alphas', 'gammas', 'lambdas', 'epsilons',
+                                  'strategies', 'train_opponents']
+    ]
+    
+    return itertools.product(*params_list)
+
+def train_commands(params, outstream):
+    '''
+    Writes the commands of the train jobs to the outstream
+    '''
+    for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
+            command = './train.sh -c config/%s.properties -d %s/%s --train_matches %s --decision_interval %s ' \
+                      '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
+                      '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
+                      '--checkpoint %d' % \
+                      (mapname, params['basedir'], train_opp, params['train_matches'], interval,
+                       train_opp, strats, alpha, gamma, epsilon, lamda, params['checkpoint'])
+    
+            for rep in range(params['initial_rep'], params['final_rep']+1):
+                outstream.write('%s\n' % command)
+                
+def test_commands(params, outstream):
+    '''
+    Writes the commands of the test jobs to the outstream
+    '''
+    for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
+            command = './test.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
+                      '--test_matches %d --save_replay true ' % \
+                      (params['basedir'], train_opp, mapname, strats, params['train_matches'], interval,
+                       alpha, epsilon, gamma, lamda, params['test_matches'])
+    
+            for rep in range(params['initial_rep'], params['final_rep']+1):
+                outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
+
+def lcurve_commands(params, outstream):
+    '''
+    Writes the commands of the learning curve jobs to the outstream
+    '''
+    for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
+            for c in range(params['checkpoint'], params['train_matches']+1, params['checkpoint']):  # +1 in second argument to ensure the last checkpoint is also picked 
+                    command = './learningcurve.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
+                      '--test_matches %d --checkpoint %d ' % \
+                      (params['basedir'], train_opp, mapname, strats, params['train_matches'], interval,
+                       alpha, epsilon, gamma, lamda, params['lcurve_matches'], c)
+                       
+                    for rep in range(params['initial_rep'], params['final_rep']+1):
+                        outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
 
 def generate_commands(params, silent=False):
     if not silent:
@@ -128,47 +182,19 @@ def generate_commands(params, silent=False):
     mode = 'w' if params['overwrite'] else 'a'
     outstream = open(params['output'], mode) if params['output'] is not None else sys.stdout
 
-    params_list = [
-        params[attr] for attr in ['maps', 'decision_intervals', 'alphas', 'gammas', 'lambdas', 'epsilons',
-                                  'strategies', 'train_opponents']
-    ]
-    
     # writes train jobs
     if not params['no_train']:
-        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
-            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
-                      '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
-                      '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
-                      '--checkpoint %d' % \
-                      (mapname, params['basedir'], params['train_matches'], interval,
-                       train_opp, strats, alpha, gamma, epsilon, lamda, params['checkpoint'])
+        train_commands(params, outstream)
     
-            for rep in range(params['initial_rep'], params['final_rep']+1):
-                outstream.write('%s\n' % command)
-    
-    # writes test jobs
-    if not params['no_test']:
-        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
-            command = './test.sh -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
-                      '--test_matches %d --save_replay true ' % \
-                      (params['basedir'], mapname, strats, params['train_matches'], interval,
-                       alpha, epsilon, gamma, lamda, params['test_matches'])
-    
-            for rep in range(params['initial_rep'], params['final_rep']+1):
-                outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
-                
     # writes learning curve jobs
     if not params['no_lcurve']:
-        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
-            for c in range(params['checkpoint'], params['train_matches']+1, params['checkpoint']):  # +1 in second argument to ensure the last checkpoint is also picked 
-                    command = './learningcurve.sh -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
-                      '--test_matches %d --checkpoint %d ' % \
-                      (params['basedir'], mapname, strats, params['train_matches'], interval,
-                       alpha, epsilon, gamma, lamda, params['lcurve_matches'], c)
-                       
-                    for rep in range(params['initial_rep'], params['final_rep']+1):
-                        outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
-            
+        lcurve_commands(params, outstream)
+        
+    # writes test jobs
+    if not params['no_test']:
+        test_commands(params, outstream)
+    
+    # closes the outstream (if not sys.stdout)
     if params['output'] is not None:
         outstream.close()
 
