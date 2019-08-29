@@ -19,6 +19,11 @@ def train_args(description='Generates commands to run experiments'):
         '-t', '--train-matches', required=True, type=int,
         help='Number of train matches'
     )
+    
+    parser.add_argument(
+        '--test-matches', type=int, default=40,
+        help='Number of test matches'
+    )
 
     '''parser.add_argument(
         '-r', '--repetitions', required=True, type=int,
@@ -43,7 +48,7 @@ def train_args(description='Generates commands to run experiments'):
     parser.add_argument(
         '-l', '--lambdas', help='List of lambda values', nargs='+',
         #default=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9]
-        default=[0.3]
+        default=[0.5]
     )
 
     parser.add_argument(
@@ -92,6 +97,21 @@ def train_args(description='Generates commands to run experiments'):
         '--overwrite', help='Overwrite rather than append the commands to the output file.',
         action='store_true'
     )
+    
+    parser.add_argument(
+        '--no-train', help="Don't generate train jobs",
+        action='store_true'
+    )
+    
+    parser.add_argument(
+        '--no-test', help="Don't generate test jobs",
+        action='store_true'
+    )
+    
+    parser.add_argument(
+        '--no-lcurve', help="Don't generate learning curve jobs",
+        action='store_true'
+    )
 
     return parser
 
@@ -107,17 +127,31 @@ def generate_commands(params, silent=False):
         params[attr] for attr in ['maps', 'decision_intervals', 'alphas', 'gammas', 'lambdas', 'epsilons',
                                   'strategies', 'train_opponents']
     ]
-    for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
-        command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
-                  '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
-                  '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
-                  '--checkpoint 10' % \
-                  (mapname, params['basedir'], params['train_matches'], interval,
-                   train_opp, strats, alpha, gamma, epsilon, lamda)
-
-        for rep in range(params['initial_rep'], params['final_rep']+1):
-            outstream.write('%s\n' % command)
-
+    
+    # writes train jobs
+    if not params['no_train']:
+        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
+            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
+                      '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
+                      '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
+                      '--checkpoint 10' % \
+                      (mapname, params['basedir'], params['train_matches'], interval,
+                       train_opp, strats, alpha, gamma, epsilon, lamda)
+    
+            for rep in range(params['initial_rep'], params['final_rep']+1):
+                outstream.write('%s\n' % command)
+    
+    # writes test jobs
+    if not params['no_test']:
+        for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in itertools.product(*params_list):
+            command = './test.sh -d %s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
+                      '--test_matches %d --save_replay true ' % \
+                      (params['basedir'], mapname, strats, params['train_matches'], interval,
+                       alpha, epsilon, gamma, lamda, params['test_matches'])
+    
+            for rep in range(params['initial_rep'], params['final_rep']+1):
+                outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
+            
     if params['output'] is not None:
         outstream.close()
 
