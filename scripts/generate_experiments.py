@@ -122,10 +122,10 @@ def arg_parser(description='Generates commands to run experiments: train, learni
 
 
 def cartesian_product(params_dict):
-    '''
-    Returns a generator for the cartesian product of 
+    """
+    Returns a generator for the cartesian product of
     parameters that have lists of values
-    '''
+    """
     
     params_list = [
         params_dict[attr] for attr in ['maps', 'decision_intervals', 'alphas', 'gammas', 'lambdas', 'epsilons',
@@ -136,9 +136,9 @@ def cartesian_product(params_dict):
 
 
 def train_commands(params, outstream):
-    '''
+    """
     Writes the commands of the train jobs to the outstream
-    '''
+    """
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
             command = './train.sh -c config/%s.properties -d %s/%s --train_matches %s --decision_interval %s ' \
                       '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
@@ -152,9 +152,9 @@ def train_commands(params, outstream):
 
 
 def test_commands(params, outstream):
-    '''
+    """
     Writes the commands of the test jobs to the outstream
-    '''
+    """
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
             command = './test.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
                       '--test_matches %d --save_replay true ' % \
@@ -166,9 +166,9 @@ def test_commands(params, outstream):
 
 
 def lcurve_commands(params, outstream):
-    '''
+    """
     Writes the commands of the learning curve jobs to the outstream
-    '''
+    """
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
             for c in range(params['checkpoint'], params['train_matches']+1, params['checkpoint']):  # +1 in second argument to ensure the last checkpoint is also picked 
                     command = './learningcurve.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
