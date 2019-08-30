@@ -6,7 +6,7 @@ import sys
 import commandlog
 
 
-def train_args(description='Generates commands to run experiments: train, learning curve and test (in this order)'):
+def arg_parser(description='Generates commands to run experiments: train, learning curve and test (in this order)'):
     parser = argparse.ArgumentParser(
         description=description
     )
@@ -120,6 +120,7 @@ def train_args(description='Generates commands to run experiments: train, learni
 
     return parser
 
+
 def cartesian_product(params_dict):
     '''
     Returns a generator for the cartesian product of 
@@ -132,6 +133,7 @@ def cartesian_product(params_dict):
     ]
     
     return itertools.product(*params_list)
+
 
 def train_commands(params, outstream):
     '''
@@ -147,7 +149,8 @@ def train_commands(params, outstream):
     
             for rep in range(params['initial_rep'], params['final_rep']+1):
                 outstream.write('%s\n' % command)
-                
+
+
 def test_commands(params, outstream):
     '''
     Writes the commands of the test jobs to the outstream
@@ -160,6 +163,7 @@ def test_commands(params, outstream):
     
             for rep in range(params['initial_rep'], params['final_rep']+1):
                 outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
+
 
 def lcurve_commands(params, outstream):
     '''
@@ -174,6 +178,7 @@ def lcurve_commands(params, outstream):
                        
                     for rep in range(params['initial_rep'], params['final_rep']+1):
                         outstream.write('%s -i %d -f %d\n' % (command, rep, rep))
+
 
 def generate_commands(params, silent=False):
     if not silent:
@@ -201,7 +206,7 @@ def generate_commands(params, silent=False):
 
 if __name__ == '__main__':
 
-    args = train_args().parse_args()
+    args = arg_parser().parse_args()
     
     generate_commands(vars(args), args.silent)
 
