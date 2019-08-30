@@ -6,7 +6,7 @@ import argparse
 import sys
 import os
 import statistics
-sys.path.append('scripts') # dirty trick to do the import below
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','scripts')) # dirty trick to do the import below
 import generate_experiments as experiments
 import commandlog
 
