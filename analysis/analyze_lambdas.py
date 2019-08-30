@@ -6,10 +6,11 @@ import argparse
 import sys
 import os
 import statistics
-import generate_experiments
-#import commandlog #TODO: solve this
-from a3n_vs_a1n_table import generate_table
+sys.path.append('scripts') # dirty trick to do the import below
+import generate_experiments as experiments
+import commandlog
 
+'''
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Analyses the results of lambda tests'
@@ -55,65 +56,57 @@ def parse_args():
     )
 
     return parser.parse_args()
-    
-def raw_analysis(basedir, rep, trainmatches, maps, strategies, lambdas, stdout):
+'''
+
+
+def raw_analysis(params): #(basedir, initial_rep, final_rep, trainmatches, maps, strategies, lambdas, stdout):
     
     for player in [0, 1]:
-        outfile = os.path.join(basedir, 'lambdas_p%d_rep%d.csv' % (player, rep) )
-        
-        outstream = open(outfile, 'w') if not stdout else sys.stdout 
+
+        mode = 'w' if params.overwrite else 'a'
+        outstream = open('%s_p%d.csv' % (params.output, player), mode) if params.output is not None else sys.stdout
+
         outstream.write(
             'trainmatches,map,lambda,features,strategy,position,wins,draws,losses,matches,score,%score\n'
         )
-        
-        for m in maps:
-            for lam in lambdas:
-                path = os.path.join(
-                    basedir, m, 'fmaterialdistancehp_s%s_rwinlossdraw' % strategies,
-                    'm%d' % trainmatches, 'd10', 'a0.01_e0.1_g1.0_l%s' % lam, 
-                    'rep%d' % rep, 'test-vs-A3N_p%d.csv' % player
-                )
-                
-                if os.path.exists(path):
-                    outstream.write('%d,%s,%s,materialdistancehp,%s,%d,%s\n' % (
-                        trainmatches, m, lam, strategies.replace(',', ' '), player, 
-                        ','.join([str(x) for x in statistics.average_score([path], player)])    
-                    ))
-                else:
-                    print('%s does not exist' % path) # this one always go to stdout
-        
-        if not sys.stdout: # prevents closing sys.stdout
+
+        for m in params.maps:
+            for lam in params.lambdas:
+                for strat in params.strategies:
+                    path = os.path.join(
+                        params.basedir, m, 'fmaterialdistancehp_s%s_rwinlossdraw' % strat,
+                        'm%d' % params.train_matches, 'd10', 'a0.01_e0.1_g1.0_l%s' % lam,  # TODO allow custom alpha-epsilon-gamma
+                        'rep%d',  # this number will be set when building the file list
+                        'test-vs-A3N_p%d.csv' % player
+                    )
+
+                    file_list = [path % rep for rep in range(params.initial_rep, params.final_rep+1)]  # +1 to include the final rep
+
+                    # filters out non-existent files
+                    for f in file_list:
+                        if not os.path.exists(f):
+                            print('%s does not exist' % f)  # this one always go to stdout
+                            file_list.remove(f)
+
+                    if len(file_list) > 0:  # if there are remaining files after filtering, analyse them
+                        outstream.write('%d,%s,%s,materialdistancehp,%s,%d,%s\n' % (
+                            params.train_matches, m, lam, strat.replace(',', ' '), player,
+                            ','.join([str(x) for x in statistics.average_score(file_list, player)])
+                        ))
+
+        if params.output is not None: # prevents closing sys.stdout
             outstream.close()
     
 
 if __name__ == '__main__':
-    args = parse_args()
-    
-    #if not args.silent: # registers the parameters of this call
-    #    commandlog.log_command(' '.join(sys.argv), 'lambda analysis')
-    
-    # TODO customize output dir or prefix
+    parser = experiments.arg_parser('Analyse raw results of test matches')
+    args = parser.parse_args()
 
-    raw_analysis(args.basedir, args.rep, args.train_matches, args.maps, args.strategies, args.lambdas, args.stdout)
+    if not args.silent:
+        commandlog.log_command(' '.join(sys.argv), 'analysis')
     
-    if not args.stdout: # also calls a3n-vs-a1n-table.generate_table if -q was omitted
-        '''out_table_format = os.path.join(args.basedir, 'A3N_p%d_' + args.metric + '.csv')
-        
-        for player in [0, 1]:
-            infile = os.path.join(args.basedir, 'A3N_p%d.csv' % player)
-            outfile = out_table_format % player
-            generate_table(infile, outfile, args.metric)
-            
-        if args.metric != '%score':
-            # adds the two tables into one
-            df1 = pd.read_csv(out_table_format % 0)
-            df2 = pd.read_csv(out_table_format % 1)
-            
-            # replaces columns 2:6 on df1 with the sum of these columns on both dataframes
-            # TODO it is generating a first column with unnecessary integer indices
-            df1.loc[:, 2:6] = df1.iloc[:, 2:6] + df2.iloc[:, 2:6]
-            df1.to_csv(os.path.join(args.basedir, 'A3N_%s_sum.csv' % args.metric))
-            '''
-            
-        print('Results are in .csv files at %s' % args.basedir)
+    raw_analysis(args)
+    
+    if args.output is not None:  # also calls a3n-vs-a1n-table.generate_table if -q was omitted
+        print('Results are in .csv files starting with %s' % args.output)
 
