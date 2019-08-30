@@ -18,7 +18,7 @@ mkdir -p $QUEUEDIR
 for s in {"CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M","HP-,CE,FC,R"}; do 
 	for t in {100,500,1000}; do 
 		for r in {0..4}; do
-			python3 scripts/generate-lambda-test.py $BASEDIR -t $t -i $r -f $r -s $s >> $QUEUEDIR/todo.txt
+			python3 scripts/generate_lambda_test.py $BASEDIR -t $t -i $r -f $r -s $s >> $QUEUEDIR/todo.txt
 		done
 	done
 done

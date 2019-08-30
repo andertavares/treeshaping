@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 import statistics
+import generate_experiments
 #import commandlog #TODO: solve this
 from a3n_vs_a1n_table import generate_table
 

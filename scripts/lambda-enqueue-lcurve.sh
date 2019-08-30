@@ -18,7 +18,7 @@ for s in {"CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M","HP-,CE,FC,R"}; do
 				#if [ $t -eq 1000 ]; then
 				#	c=20
 				#fi  
-				python3 scripts/generate-lambda-lcurve.py results/lambda_train-vs-$o -t $t -i $r -f $r -s $s --checkpoint $c >> $QUEUEDIR/todo.txt
+				python3 scripts/generate_lambda_lcurve.py results/lambda_train-vs-$o -t $t -i $r -f $r -s $s --checkpoint $c >> $QUEUEDIR/todo.txt
 			done
 		done
 	done

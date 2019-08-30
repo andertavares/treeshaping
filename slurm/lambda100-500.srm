@@ -46,7 +46,7 @@ for s in {all,"HP-,CE,FC,R"}; do
 	for o in {selfplay,players.A3N}; do 
 		for t in {100,500}; do 
 			for r in {0..4}; do
-				python3 scripts/generate-lambda-test.py results/lambda_train-vs-$o -t $t -i $r -f $r -s $s >> $QUEUEDIR/todo.txt
+				python3 scripts/generate_lambda_test.py results/lambda_train-vs-$o -t $t -i $r -f $r -s $s >> $QUEUEDIR/todo.txt
 			done
 		done
 	done
