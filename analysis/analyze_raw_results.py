@@ -6,12 +6,12 @@ import argparse
 import sys
 import os
 import statistics
-sys.path.append(os.path.join(os.path.dirname(__file__),'..','scripts')) # dirty trick to do the import below
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts')) # dirty trick to do the import below
 import generate_experiments as experiments
 import commandlog
 
 
-def raw_analysis(params): #(basedir, initial_rep, final_rep, trainmatches, maps, strategies, lambdas, stdout):
+def raw_analysis(params):
     
     for player in [0, 1]:
 
@@ -22,9 +22,6 @@ def raw_analysis(params): #(basedir, initial_rep, final_rep, trainmatches, maps,
             'trainmatches,map,lambda,features,strategy,position,wins,draws,losses,matches,score,%score\n'
         )
 
-        #for m in params.maps:
-        #    for lam in params.lambdas:
-        #        for strat in params.strategies:
         for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in experiments.cartesian_product(vars(params)):
             path = os.path.join(
                 params.basedir, mapname, 'fmaterialdistancehp_s%s_rwinlossdraw' % strats,
