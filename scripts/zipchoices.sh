@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# traverses the given directory recursively, placing every .choices file found in its respective .zip 
+
 if [ "$#" -lt 1 ]; then
 	echo "Please inform basedir"
 	exit
