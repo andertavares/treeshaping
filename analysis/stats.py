@@ -79,8 +79,6 @@ if __name__ == '__main__':
         '-e', '--explain', required=False, action='store_true', default=False,
         help='Describe what each number is.'
     )
-    
-    
 
     args = parser.parse_args()
 
