@@ -3,13 +3,13 @@
 #SBATCH --ntasks-per-node=24 #Numero de tarefas por Nó
 #SBATCH --ntasks=504           #Numero total de tarefas MPI
 #SBATCH -p cpu 	      		#min 21 max 50 nós, 48h (lista: https://sdumont.lncc.br/support_manual.php?pg=support#5)
-#SBATCH -J cpu_job         #Nome job
+#SBATCH -J alphas         #Nome job
 #SBATCH --exclusive          #Utilização exclusiva dos nós durante a execução do job
 
 #SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=andersonrochatavares@gmail.com
 
-#IGNORE_SBATCH --time=00:40:00
+#SBATCH --time=2-00:00:00
 
 nodeset -e $SLURM_JOB_NODELIST
 
@@ -33,7 +33,7 @@ echo "Finished generating the job list (`wc -l $QUEUEDIR/todo.txt` jobs)"
 for i in {1..21}; do 
 	initial=$(( (($i - 1)) * 24 + 1)) 	# (i-1)*24 + 1
 	final=$(( $i * 24 ))				# i*24
-	srun --resv-ports  --nodes 1 --ntasks=1 -c 14 $SCRIPT $initial $final $QUEUEDIR & 
+	srun --resv-ports  --nodes 1 --ntasks=1 -c 24 $SCRIPT $initial $final $QUEUEDIR & 
 done
 
 echo "Jobs submitted."
