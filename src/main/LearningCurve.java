@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
@@ -180,7 +181,8 @@ public class LearningCurve extends Test {
 			return targetNumMatches; // no match was executed 
 		}
 		
-		// decrement targetNumMatches for each non-empty line in the file 
+		// decrement targetNumMatches for each non-empty line in the file
+		// TODO use LineNumberReader and reduce this to about two lines of code...
 		BufferedReader reader;
 		try {
 			reader = new BufferedReader(new FileReader(outputFile));
