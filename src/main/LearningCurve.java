@@ -1,6 +1,11 @@
 package main;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
@@ -113,8 +118,6 @@ public class LearningCurve extends Test {
 		
 		AI testOpponent = AILoader.loadAI(testPartnerName, types);
 		
-		logger.info("THIS IS LEARNING CURVE");
-		
         // tests the learner both as player 0 and 1
         for (int testPosition = 0; testPosition < 2; testPosition++) {
         	// creates the player instance and loads weights according to its position
@@ -147,10 +150,12 @@ public class LearningCurve extends Test {
     		
     		logger.info("Testing: Player0={}, Player1={}", p0.getClass().getSimpleName(), p1.getClass().getSimpleName());
     		
+    		String lcurveOutput = String.format("%s/lcurve-vs-%s_p%d_m%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint); //summary output
+    		
     		Runner.repeatedMatches(
     			types, workingDir,
-    			testMatches / 2, // runs half the matches in each position
-    			String.format("%s/lcurve-vs-%s_p%d_m%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint), //summary output
+    			remainingMatches(testMatches / 2, lcurveOutput), // runs up to half the matches in each position  
+    			lcurveOutput, 
     			null, //choices prefix //String.format("%s/lcurve-vs-%s_p%d_m%d", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint)
     			p0, p1, visualizeTest, settings, tracePrefix, 
     			0 // no checkpoints (we're already testing existing ones)
@@ -159,5 +164,43 @@ public class LearningCurve extends Test {
         
         
 		logger.info("Created learning curve data for checkpoint {} at {}.", checkpoint, workingDir);
+	}
+
+	/**
+	 * Calculates how many matches are needed to fill the output file up to 
+	 * the target number of matches. 
+	 * Returns zero if the file has the target number of matches or more.
+	 * @param targetNumMatches
+	 * @param outputFile
+	 * @return
+	 */
+	private static int remainingMatches(int targetNumMatches, String outputFile) {
+		
+		File output = new File(outputFile);
+		if(!output.exists()) {
+			return targetNumMatches; // no match was executed 
+		}
+		
+		// decrement targetNumMatches for each non-empty line in the file
+		// TODO use LineNumberReader and reduce this to about two lines of code...
+		BufferedReader reader;
+		try {
+			reader = new BufferedReader(new FileReader(outputFile));
+			
+			String line;
+			while ((line = reader.readLine()) != null){
+			    if(!"".equals(line.trim())){ //skips empty lines
+			        targetNumMatches--;
+			    }
+			}
+		
+		} catch (FileNotFoundException e) { // should not happen as we test this before
+			e.printStackTrace();
+		} catch (IOException e) {
+			LogManager.getRootLogger().error("An error happened when reading '" + outputFile +"'", e);
+		}
+		targetNumMatches = Math.max(0, targetNumMatches+1); //adds 1 to compensate for the file header
+		LogManager.getRootLogger().info("{} matches left to run.", targetNumMatches);
+		return targetNumMatches;
 	}
 }
