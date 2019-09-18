@@ -17,6 +17,10 @@ import utils.FileNameUtil;
 
 public class Train {
 	
+	public Train() {
+		// empty public constructor
+	}
+	
 	public static void main(String[] args) throws Exception {
 		Logger logger = LogManager.getRootLogger();
 		
@@ -31,8 +35,10 @@ public class Train {
         String fullDir = String.format("%s/rep%d", experimentDir, repNumber);
        		
 		// runs one repetition
-		// p0's random seed is the rep number, p1's is 5000 + repNumber  
-		run(config, fullDir, repNumber, repNumber + 5000);
+		// p0's random seed is the rep number, p1's is 5000 + repNumber 
+        // TODO restore the experiment if the user requested so
+        Train experiment = new Train();
+		experiment.run(config, fullDir, repNumber, repNumber + 5000);
 		
 		// writes a flag file named 'finished' to indicate that this repetition ended
 		File repFinished = new File(fullDir + "/finished");
@@ -41,10 +47,9 @@ public class Train {
 		};
 	}
 	
-	public static void run(Properties config, String workingDir, int randomSeedP0, int randomSeedP1) throws Exception {
+	public void run(Properties config, String workingDir, int randomSeedP0, int randomSeedP1) throws Exception {
 		
 		int trainMatches = Integer.parseInt(config.getProperty("train_matches"));
-		//int testMatches = Integer.parseInt(config.getProperty("test_matches"));
 		
         // loads microRTS game settings
      	GameSettings settings = GameSettings.loadFromConfig(config);
@@ -109,14 +114,6 @@ public class Train {
 			((UnrestrictedPolicySelectionLearner) trainingOpponent).saveWeights(workingDir + "/weights_1.bin");
 		}
 		
-		/*// test matches
-		logger.info("Starting test...");
-		boolean visualizeTest = Boolean.parseBoolean(config.getProperty("visualize_test", "false"));
-		AI testOpponent = AILoader.loadAI(config.getProperty("test_opponent"), types);
-		player.prepareForTest();
-		Runner.repeatedMatches(types, testMatches, outputPrefix + "/test.csv", player, testOpponent, visualizeTest, settings, null);
-		logger.info("Test finished.");
-		*/
 	}
 
 }
