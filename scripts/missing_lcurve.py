@@ -37,6 +37,10 @@ def regen_missing(params):
                     ))
                     break  # gets out of the position-traversing loop to avoid generating the same command twice
 
+    # closes the outstream (if not sys.stdout)
+    if params['output'] is not None:
+        outstream.close()
+
 
 if __name__ == '__main__':
     parser = arg_parser(
