@@ -10,14 +10,9 @@ def regen_missing(params):
 
     for c in range(params['checkpoint'], params['train_matches'] + 1, params['checkpoint']):
         for rep in range(params['initial_rep'], params['final_rep'] + 1):
-            generated = False  # used to avoid duplicate command generation
+            incomplete = False  # flag activated when learning curve data is incomplete
 
             for position in [0, 1]:
-
-                # skips generating for position 1 if already generated for 0
-                # (the data generation program takes care of filling data for both positions)
-                if generated:
-                    continue
 
                 filename = os.path.join(
                     params['basedir'],
@@ -25,11 +20,22 @@ def regen_missing(params):
                     'lcurve-vs-%s_p%d_m%d.csv' % (params['opponent'], position, c)
                 )
 
+                # learning curve data is incomplete if the file does not exist or
+                # if the number of matches is less than the half lcurve_matches (as half is done for each position)
                 if not os.path.exists(filename):
+                    incomplete = True
+                else:  # file exists, count number of non-empty lines
+                    with open(filename) as f:
+                        non_blank_lines = sum(not line.isspace() for line in f) - 1  # -1 to discount the header
+
+                    if params['lcurve_matches'] // 2 > non_blank_lines:
+                        incomplete = True
+
+                if incomplete:
                     outstream.write('./learningcurve.sh -d %s --test_matches %d --checkpoint %d -i %d -f %d\n' % (
                         params['basedir'], params['lcurve_matches'], c, rep, rep
                     ))
-                    generated = True
+                    break  # gets out of the position-traversing loop to avoid generating the same command twice
 
 
 if __name__ == '__main__':
