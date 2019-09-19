@@ -201,7 +201,7 @@ public class Runner {
         	
         	// saves weights every 'checkpoint' matches (adds 1 to matchNumber because it is starts at 0
         	if (checkpoint > 0 && (matchNumber+1) % checkpoint == 0) {
-        		checkpoint(ai1, ai2, workingDir, matchNumber+1);
+        		checkpoint(new AI[] {ai1, ai2}, workingDir, matchNumber+1);
         	}
         	
         	
@@ -243,34 +243,29 @@ public class Runner {
 	
 	/**
 	 * Writes the weights of the AIs if they're able to save weights
-	 * @param ai1
-	 * @param ai2
+	 * @param players an array with the two players
 	 * @param workingDir
-	 * TODO run in a loop rather than two ifs
 	 */
-	private static void checkpoint(AI ai1, AI ai2, String workingDir, int matchNumber) {
+	private static void checkpoint(AI[] players, String workingDir, int matchNumber) {
 		
 		Logger logger = LogManager.getRootLogger();
 		
-		// casts and save the weights
-		if(ai1 instanceof UnrestrictedPolicySelectionLearner) {
-			try {
-				((UnrestrictedPolicySelectionLearner) ai1).saveWeights(
-					String.format("%s/weights_0-m%d.bin", workingDir, matchNumber)
-				);
-			} catch (IOException e) {
-				logger.error("Unable to save weights for player 0", e);
-			}
-			
+		if (players.length != 2) {
+			logger.error("checkpoint should receive an array with two players instead of {}!", players.length);
 		}
 		
-		if(ai2 instanceof UnrestrictedPolicySelectionLearner) {
-			try {
-				((UnrestrictedPolicySelectionLearner) ai2).saveWeights(
-					String.format("%s/weights_1-m%d.bin", workingDir, matchNumber)
-				);
-			} catch (IOException e) {
-				logger.error("Unable to save weights for player 1", e);
+		for (int p = 0; p < players.length; p++) {
+			// retrieves the player, casts and save the weights
+			AI player = players[p];
+			if(player instanceof UnrestrictedPolicySelectionLearner) {
+				try {
+					((UnrestrictedPolicySelectionLearner) player).saveWeights(
+						String.format("%s/weights_%d-m%d.bin", workingDir, p, matchNumber)
+					);
+				} catch (IOException e) {
+					logger.error("Unable to save weights for player {}", p, e);
+				}
+				
 			}
 		}
 	}
