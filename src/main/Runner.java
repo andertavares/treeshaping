@@ -246,6 +246,7 @@ public class Runner {
 	 * @param ai1
 	 * @param ai2
 	 * @param workingDir
+	 * TODO run in a loop rather than two ifs
 	 */
 	private static void checkpoint(AI ai1, AI ai2, String workingDir, int matchNumber) {
 		
@@ -265,7 +266,7 @@ public class Runner {
 		
 		if(ai2 instanceof UnrestrictedPolicySelectionLearner) {
 			try {
-				((UnrestrictedPolicySelectionLearner) ai1).saveWeights(
+				((UnrestrictedPolicySelectionLearner) ai2).saveWeights(
 					String.format("%s/weights_1-m%d.bin", workingDir, matchNumber)
 				);
 			} catch (IOException e) {
