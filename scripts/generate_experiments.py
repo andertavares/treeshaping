@@ -75,7 +75,7 @@ def arg_parser(description='Generates commands to run experiments: train, learni
     )
 
     parser.add_argument(
-        '-d', '--decision-intervals', help='List of decision intervals', nargs='+',
+        '-d', '--decision-intervals', type=int, help='List of decision intervals', nargs='+',
         default=[10]
         # default=[0.0, 0.05, 0.1, 0.15, 0.2, 0.3]
     )
@@ -171,7 +171,7 @@ def lcurve_commands(params, outstream):
     """
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
             for c in range(params['checkpoint'], params['train_matches']+1, params['checkpoint']):  # +1 in second argument to ensure the last checkpoint is also picked 
-                    command = './learningcurve.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%d/a%s_e%s_g%s_l%s ' \
+                    command = './learningcurve.sh -d %s/%s/%s/fmaterialdistancehp_s%s_rwinlossdraw/m%d/d%s/a%s_e%s_g%s_l%s ' \
                       '--test_matches %d --checkpoint %d ' % \
                       (params['basedir'], train_opp, mapname, strats, params['train_matches'], interval,
                        alpha, epsilon, gamma, lamda, params['lcurve_matches'], c)
