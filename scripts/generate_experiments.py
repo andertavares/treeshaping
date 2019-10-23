@@ -140,11 +140,11 @@ def train_commands(params, outstream):
     Writes the commands of the train jobs to the outstream
     """
     for mapname, interval, alpha, gamma, lamda, epsilon, strats, train_opp in cartesian_product(params):
-            command = './train.sh -c config/%s.properties -d %s/%s --train_matches %s --decision_interval %s ' \
+            command = './train.sh -c config/%s.properties -d %s --train_matches %s --decision_interval %s ' \
                       '--train_opponent %s -s %s -e materialdistancehp -r winlossdraw ' \
                       '--td_alpha_initial %s --td_gamma %s --td_epsilon_initial %s --td_lambda %s ' \
                       '--checkpoint %d' % \
-                      (mapname, params['basedir'], train_opp, params['train_matches'], interval,
+                      (mapname, params['basedir'], params['train_matches'], interval,
                        train_opp, strats, alpha, gamma, epsilon, lamda, params['checkpoint'])
     
             for rep in range(params['initial_rep'], params['final_rep']+1):
