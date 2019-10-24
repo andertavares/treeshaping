@@ -18,7 +18,6 @@ import ai.core.AI;
 import ai.core.ParameterSpecification;
 import learning.LearningAgent;
 import learning.LearningAgentFactory;
-import learning.LinearSarsaLambda;
 import players.A3N;
 import rts.GameState;
 import rts.PlayerAction;
@@ -119,6 +118,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 	@Override
     public void reset() {
         planner.reset();
+        choices = new ArrayList<>(); //resets the list of choices 
     }
 
     @Override
