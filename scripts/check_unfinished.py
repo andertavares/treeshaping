@@ -20,7 +20,7 @@ def check_unfinished(params):
         # checks if the file '.finished' is there
         if not dirs:
             # checks if the leaf dir is an experiment repetition and if .finished is missing
-            if 'rep' in root and '.finished' not in files:
+            if 'rep' in root and 'finished' not in files:
                 outstream.write('%s\n' % root)
 
     # closes the outstream (if not sys.stdout)
