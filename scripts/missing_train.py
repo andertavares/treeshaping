@@ -7,7 +7,7 @@ import argparse
 def check_unfinished(params):
     """
     Traverses the specified basedir recursively. When a leaf dir is reached, checks if
-    it contains the .finished file. If not, it is reported as an unfinished training
+    it contains the finished file. If not, it is reported as an unfinished training
     to the specified output
     :param params: a dict with the required arguments
     :return:
