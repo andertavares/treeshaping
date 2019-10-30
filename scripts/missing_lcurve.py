@@ -41,7 +41,7 @@ def regen_missing(params):
     if params['output'] is not None:
         outstream.close()
 
-
+# TODO accept basedir as the experiment root!
 if __name__ == '__main__':
     parser = arg_parser(
         description='Finds incomplete and/or missing learning curve data '
