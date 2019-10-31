@@ -1,9 +1,3 @@
-# dir structure is
-# basedir/map/fmaterialdistancehp_sSTRAT_rwinlossdraw/mTRAIN/dDECISION/aALPHA_eEPSILON_gGAMMA_lLAMBDA/repREP
-
-# example:
-# results/selfplay/TwoBasesBarracks16x16/fmaterialdistancehp_sCC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M_rwinlossdraw/m1000/d10/a0.01_e0.1_g1_l0/rep0
-
 import os
 import sys
 import fire
@@ -83,7 +77,24 @@ def produce_results(basedir, raw_outstream=sys.stdout, avg_outstream=sys.stdout,
         ))
 
 
-def main(basedir, raw_output, avg_output, sep=',', test_opp='A3N'):
+def main(basedir, raw_output='raw.csv', avg_output='avg.csv', sep=',', test_opp='A3N'):
+    """
+    Generates a .csv file by parsing all experiment data found by recursively traversing basedir.
+
+    The expected directory structure of experiments is:
+    basedir/train_opp/map/fFEATURE_sSTRAT_rREWARD/mTRAIN/dDECISION/aALPHA_eEPSILON_gGAMMA_lLAMBDA/repREP
+
+    results/selfplay/TwoBasesBarracks16x16/fmaterialdistancehp_sCC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M_rwinlossdraw/m1000/d10/a0.01_e0.1_g1_l0/rep0
+
+
+    :param basedir: experiment root dir.
+    :param raw_output: file to write the raw results of each repetition.
+    :param avg_output: file to write the average results across repetitions.
+    :param sep: separator of the .csv file
+    :param test_opp: test opponent
+    :return:
+    """
+
     raw_outstream = open(os.path.join(basedir, raw_output), 'w')
     avg_outstream = open(os.path.join(basedir, avg_output), 'w')
 
