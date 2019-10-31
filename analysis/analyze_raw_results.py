@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 import sys
 import os
-import statistics
+import stats
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts')) # dirty trick to do the import below
 import generate_experiments as experiments
 import commandlog
@@ -46,7 +46,7 @@ def raw_analysis(params):
             if len(file_list) > 0:  # if there are remaining files after filtering, analyse them
                 outstream.write('%d,%s,%s,materialdistancehp,%s,%d,%s\n' % (
                     params.train_matches, mapname, lamda, strats.replace(',', ' '), player,
-                    ','.join([str(x) for x in statistics.average_score(file_list, player)])
+                    ','.join([str(x) for x in stats.average_score(file_list, player)])
                 ))
 
         if params.output is not None:  # prevents closing sys.stdout
