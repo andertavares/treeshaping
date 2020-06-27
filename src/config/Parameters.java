@@ -18,7 +18,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-//TODO add support to td_gamma
 public class Parameters {
 	
 	public static Properties parseParameters(String[] args) throws IOException {
@@ -92,6 +91,8 @@ public class Parameters {
 		options.addOption(new Option(null, "checkpoint", true, "Saves the weights every 'checkpoint' matches. If used on learning curve generation: which checkpoint to test."));
 		
 		options.addOption(new Option(null, "restart", true, "(must indicate true or false) Restart an unfinished experiment (make sure it is not running in another program instance!)"));
+		options.addOption(new Option(null, "resume", true, "(must indicate true or false) Resume an unfinished training? The repetition number must be specified. E.g.: -i 2 -f 2 to resume the experiment in rep2 directory"));
+		
         
         return options;
 	}
@@ -111,7 +112,7 @@ public class Parameters {
 				"test_matches", "rewards", "features", "train_matches", "strategies",
 				"save_replay", "learner",
 				//"test_position", 
-				"decision_interval", "restart", "checkpoint"
+				"decision_interval", "restart", "checkpoint", "resume"
 		);
 		
 		for(String paramName : overrideList) {
@@ -213,7 +214,9 @@ public class Parameters {
 			put("final_rep", "0");
 			put("initial_rep", "0");
 			put("gui",  "false");
+			put("visualize_test", "false");
 			put("save_replay", "false");
+			put("save_choices", "false");
 			
 			put("train_opponent", "selfplay");
 			put("train_matches", "100" );
@@ -238,6 +241,8 @@ public class Parameters {
 			put("checkpoint", "10");
 			
 			put("restart", "false");
+			put("resume", "false");
+			
 		}};
 		
 		for(Entry<String, String> param : defaults.entrySet()) {
