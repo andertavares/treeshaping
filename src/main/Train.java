@@ -91,7 +91,7 @@ public class Train {
 		config.store(new FileOutputStream(workingDir + "/settings.properties"), null);
 		
 		// training matches
-		logger.info("Starting training...");
+		logger.info("Starting training, #matches = {}.", trainMatches);
 		boolean visualizeTraining = Boolean.parseBoolean(config.getProperty("visualize_training", "false"));
 		
 		
