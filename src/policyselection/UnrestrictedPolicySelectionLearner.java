@@ -140,7 +140,7 @@ public class UnrestrictedPolicySelectionLearner extends AI{
 		}
 
 		// logs and stores the current choice (even if unchanged)
-		logger.debug("Frame {}. Player {} chose: {}.", gs.getTime(), player, currentChoiceName);
+		logger.trace("Frame {}. Player {} chose: {}.", gs.getTime(), player, currentChoiceName);
 		choices.add(currentChoiceName);
 		
 		// sets the unrestricted unit selection policy
