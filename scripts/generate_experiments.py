@@ -47,7 +47,7 @@ def arg_parser(description='Generates commands to run experiments: train, learni
 
     parser.add_argument(
         '-m', '--maps', help='List of maps', nargs='+',
-        default=['basesWorkers8x8', 'NoWhereToRun9x8', 'TwoBasesBarracks16x16']
+        default=['basesWorkers8x8'] #, 'NoWhereToRun9x8', 'TwoBasesBarracks16x16']
     )
 
     parser.add_argument(
@@ -71,12 +71,12 @@ def arg_parser(description='Generates commands to run experiments: train, learni
     parser.add_argument(
         '-g', '--gammas', help='List of gammas to test', nargs='+',
         #default=[0.5, 0.7, 0.9, 0.99, 0.999, 1.0]
-        default=[0.9]
+        default=[0.99]
     )
 
     parser.add_argument(
         '-d', '--decision-intervals', type=int, help='List of decision intervals', nargs='+',
-        default=[10]
+        default=[100]
         # default=[0.0, 0.05, 0.1, 0.15, 0.2, 0.3]
     )
 
