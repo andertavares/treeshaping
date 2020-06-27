@@ -16,9 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.jdom.JDOMException;
 
 import ai.core.AI;
-import players.A1N;
 import players.A3N;
-import policyselection.UnrestrictedPolicySelectionLearner;
 import rts.GameSettings;
 import rts.GameSettings.LaunchMode;
 import rts.units.UnitTypeTable;
@@ -113,7 +111,8 @@ public class A3NvsA1N {
 			false, // won't visualize
 			settings, 
 			experimentDir + "/A3N-vs-A1N",	// will record traces
-			0 //no checkpoints	
+			0, //no checkpoints
+			0 // assumes no previously played matches
 		);
 		logger.info("Finished running A3N as player 0 at {}", settings.getMapLocation());
 		
@@ -129,7 +128,8 @@ public class A3NvsA1N {
 			false, // won't visualize
 			settings, 
 			experimentDir + "/A1N-vs-A3N",	// will record traces
-			0 // no checkpoints
+			0, // no checkpoints
+			0 // assumes no previously played matches
 		);
         logger.info("Finished running A3N as player 1 at {}", settings.getMapLocation());
         

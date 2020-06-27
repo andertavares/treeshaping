@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
@@ -66,10 +65,10 @@ public class LearningCurve extends Test {
 			repConfig.setProperty("test_matches", ""+numMatches); //""+ is just to easily convert to string
 			repConfig.setProperty("save_replay", saveReplay);
 			repConfig.setProperty("checkpoint", config.getProperty("checkpoint"));
+			repConfig.setProperty("search.timebudget", config.getProperty("search.timebudget"));
 			
 			// runs one repetition
-			// random seed = 0 should make no difference (no greedy actions)  
-			runTestMatches(repConfig, testPartnerName, repDir, 0, 0, writeReplay);
+			runTestMatches(repConfig, testPartnerName, repDir, initialRep, initialRep+5000, writeReplay);
 		}
 			
 	}
@@ -158,7 +157,8 @@ public class LearningCurve extends Test {
     			lcurveOutput, 
     			null, //choices prefix //String.format("%s/lcurve-vs-%s_p%d_m%d", workingDir, testOpponent.getClass().getSimpleName(), testPosition, checkpoint)
     			p0, p1, visualizeTest, settings, tracePrefix, 
-    			0 // no checkpoints (we're already testing existing ones)
+    			0, // no checkpoints (we're already testing existing ones)
+    			0 // latestMatch is zero to don't interfere with remainingMatches
     		);
         }
         

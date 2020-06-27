@@ -47,8 +47,7 @@ public class Test {
 			repConfig.setProperty("save_replay", saveReplay);
 			
 			// runs one repetition
-			// random seed = 0 should make no difference (no greedy actions)  
-			runTestMatches(repConfig, testPartnerName, repDir, 0, 0, writeReplay);
+			runTestMatches(repConfig, testPartnerName, repDir, initialRep, initialRep+5000, writeReplay);
 		}
 			
 	}
@@ -125,7 +124,8 @@ public class Test {
     			String.format("%s/test-vs-%s_p%d.csv", workingDir, testOpponent.getClass().getSimpleName(), testPosition),
     			String.format("%s/test-vs-%s", workingDir, testOpponent.getClass().getSimpleName()), //runner infers the test position, no need to pass in the prefix
     			p0, p1, visualizeTest, settings, tracePrefix, 
-    			0 // no checkpoints
+    			0, // no checkpoints
+    			0 //assumes no prior matches were played
     		);
         }
         

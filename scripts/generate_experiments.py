@@ -84,6 +84,7 @@ def arg_parser(description='Generates commands to run experiments: train, learni
         '-s', '--strategies', help='List of sets of strategies (each set is a comma-separated string without spaces)',
         nargs='+',
         default=['CC,CE,FC,FE,AV-,AV+,HP-,HP+,R,M']
+        #default=['CC,CE,FC,FE']
     )
 
     parser.add_argument(
